@@ -1,0 +1,28 @@
+name: CI
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  build-all:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    name: Build all testing workloads
+    steps:
+      - name: Fetch Repository
+        uses: actions/checkout@v4
+        with:
+          submodules: 'true'
+      - name: Build all Workloads
+        run: make tarball
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: nemu-workloads
+          path: |
+            build/workloads.tar.zstd
+            build/rootfs.tar.zstd
+            build/buildroot/output/images/Image

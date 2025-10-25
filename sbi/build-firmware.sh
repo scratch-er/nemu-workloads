@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
 set -e
-set -x
 
 SBI_BUILD_DIR="$(realpath "$1")"
 KERNEL_IMAGE="$(realpath "$2")"
@@ -11,6 +10,8 @@ DTS_TEMPLATE="$SCRIPT_DIR/nemu.dts.in"
 
 MEM_BEGIN=$(( 0x80000000 ))
 KERNEL_OFFSET_MB=2
+
+DTC="${DTC:-dtc}"
 
 MEGABYTE=$(( 1024*1024 ))
 KERNEL_OFFSET_HEX=$(printf "0x%x" $(( KERNEL_OFFSET_MB*MEGABYTE )))
@@ -25,7 +26,7 @@ INITRAMFS_END_HEX=$(printf "0x%x" $(( INITRAMFS_BEGIN_HEX + INITRAMFS_SIZE )))
 sed -e "s/INITRAMFS_BEGIN/$INITRAMFS_BEGIN_HEX/g" \
     -e "s/INITRAMFS_END/$INITRAMFS_END_HEX/g" \
     "$DTS_TEMPLATE" > "$WORKLOAD_BUILD_DIR/nemu.dts"
-dtc -I dts -O dtb -o "$WORKLOAD_BUILD_DIR/nemu.dtb" "$WORKLOAD_BUILD_DIR/nemu.dts"
+"$DTC" -I dts -O dtb -o "$WORKLOAD_BUILD_DIR/nemu.dtb" "$WORKLOAD_BUILD_DIR/nemu.dts"
 
 # Build OpenSBI
 rm -rf "$SBI_BUILD_DIR/build/platform/generic/firmware"

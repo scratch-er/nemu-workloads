@@ -1,4 +1,4 @@
-all: payloads
+all: workloads
 
 # Download buildroot
 build/buildroot/Makefile:
@@ -31,16 +31,43 @@ build/$(1)/rootfs.cpio.zstd: $$(shell find $$(abspath workloads/$(1))) build/bui
 
 # Build all-in-one firmware
 build/$(1)/fw_payload.bin: build/$(1)/rootfs.cpio.zstd build/buildroot/output/images/Image build/opensbi/build/platform/generic/lib/libplatsbi.a sbi/nemu.dts.in
+	mkdir -p build/$(1)/
+	cp -r build/opensbi build/$(1)/
 	CROSS_COMPILE="$$(abspath build/buildroot/output/host/bin)/riscv64-linux-" \
-	bash sbi/build-firmware.sh build/opensbi build/buildroot/output/images/Image build/$(1)
+	DTC="$$(abspath build/buildroot/output/host/bin)/dtc" \
+	bash sbi/build-firmware.sh build/$(1)/opensbi build/buildroot/output/images/Image build/$(1)
+	rm -rf build/$(1)/opensbi
 
-PAYLOADS += build/$(1)/fw_payload.bin
+WORKLOAD_DIRS += build/$(1)
+WORKLOADS += build/$(1)/fw_payload.bin
+ROOTFS += build/$(1)/rootfs.cpio.zstd
+TAR_FLAG_WORKLOADS += --transform='s|build/$(1)/fw_payload.bin|fw_payload_$(1).bin|'
+TAR_FLAG_ROOTFS += --transform='s|build/$(1)/rootfs.cpio.zstd|rootfs_$(1).cpio.zstd|'
 endef
 
+# Define all workloads
 $(eval $(call add_workload,hello))
 $(eval $(call add_workload,rvv-bench))
 
-payloads: $(PAYLOADS)
+# Build all all-in-one firmware images
+workloads: $(WORKLOADS)
 
-.NOTPARALLEL: $(PAYLOADS)
-.PHONY: payloads
+# Build all rootfs
+rootfs: $(ROOTFS)
+
+# Pack all images
+build/workloads.tar.zstd: $(WORKLOADS)
+	tar -c $(WORKLOADS) $(TAR_FLAG_WORKLOADS) | zstd -3 -T0 -o build/workloads.tar.zstd
+
+# Pack all rootfs
+build/rootfs.tar.zstd: $(ROOTFS)
+	tar -c $(ROOTFS) $(TAR_FLAG_ROOTFS) | zstd -3 -T0 -o build/rootfs.tar.zstd
+
+# Pack images and rootfs
+tarball: build/workloads.tar.zstd build/rootfs.tar.zstd
+
+# Remove all built workloads
+clean-workloads:
+	rm -rf $(WORKLOAD_DIRS) build/workloads.tar.zstd build/rootfs.tar.zstd
+
+.PHONY: all workloads rootfs tarball clean-workloads

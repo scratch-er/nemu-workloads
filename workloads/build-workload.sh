@@ -2,12 +2,14 @@
 set -e
 
 export WORKLOAD_DIR="$1"
-export BUILD_DIR="$2"
-export SRC_DIR="$BUILD_DIR/source"
-export PKG_DIR="$BUILD_DIR/package"
+export WORKLOAD_BUILD_DIR
+WORKLOAD_DIR="$(realpath "$1")"
+WORKLOAD_BUILD_DIR="$(realpath "$2")"
+export SRC_DIR="$WORKLOAD_BUILD_DIR/source"
+export PKG_DIR="$WORKLOAD_BUILD_DIR/package"
 
 populate-src-dir() {
-    mkdir -p "$BUILD_DIR"
+    mkdir -p "$WORKLOAD_BUILD_DIR"
     if [[ -e "$SRC_DIR" ]]; then
         rm -rf "$SRC_DIR"
     fi
@@ -42,7 +44,7 @@ pack-cpio() {
 }
 
 populate-src-dir
-download-files "$WORKLOAD_DIR/file_list.txt" "$BUILD_DIR/source"
+download-files "$WORKLOAD_DIR/file_list.txt" "$WORKLOAD_BUILD_DIR/source"
 rm -rf "$PKG_DIR" && mkdir -p "$PKG_DIR"
 bash "$WORKLOAD_DIR/build.sh"
-pack-cpio "$PKG_DIR" "$BUILD_DIR/rootfs.cpio.zstd"
+pack-cpio "$PKG_DIR" "$WORKLOAD_BUILD_DIR/rootfs.cpio.zstd"

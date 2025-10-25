@@ -1,5 +1,5 @@
 /* the maximum number of bytes to allocate, minimum of 4096 */
-#define MAX_MEM (1024*256)
+#define MAX_MEM (1024*16)
 /* the byte count for the next run */
 #define NEXT(c) (c + c/7 + 3)
 

@@ -2,6 +2,7 @@
 set -e
 
 cp "$WORKLOAD_DIR/config.mk" "$SRC_DIR"
+cp "$WORKLOAD_DIR/nolibc.h" "$SRC_DIR"
 cp "$WORKLOAD_DIR/config.h" "$SRC_DIR/bench"
 make -C "$SRC_DIR/bench"
 

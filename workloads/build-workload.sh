@@ -1,0 +1,46 @@
+#!/usr/bin/env bash
+set -e
+
+export WORKLOAD_DIR="$1"
+export BUILD_DIR="$2"
+export SRC_DIR="$BUILD_DIR/source"
+export PKG_DIR="$BUILD_DIR/package"
+
+populate-src-dir() {
+    mkdir -p "$BUILD_DIR"
+    if [[ -e "$SRC_DIR" ]]; then
+        rm -rf "$SRC_DIR"
+    fi
+    if [[ -d "$WORKLOAD_DIR/source" ]]; then
+        cp -r "$WORKLOAD_DIR/source" "$SRC_DIR"
+    else
+        mkdir -p "$SRC_DIR"
+    fi
+}
+
+download-files() {
+    local file_list="$1"
+    local target_dir="$2"
+
+    if [[ -f "$file_list" ]]; then
+        while IFS= read -r line; do
+            [[ -z "$line" || "$line" =~ ^[[:space:]]*# ]] && continue
+            local file_name="${line%%::*}"
+            local download_link="${line#*::}"
+            local target_file="$target_dir/$file_name"
+            wget -O "$target_file" "$download_link"
+        done < "$file_list"
+    fi
+}
+
+pack-cpio() {
+    local root_dir="$1"
+    local cpio_file="$2"
+    cd "$root_dir"
+    find . | fakeroot cpio -o -H newc > "$cpio_file"
+}
+
+populate-src-dir
+download-files "$WORKLOAD_DIR/file_list.txt" "$BUILD_DIR/source"
+bash "$WORKLOAD_DIR/build.sh"
+pack-cpio "$PKG_DIR" "$BUILD_DIR/rootfs.cpio"

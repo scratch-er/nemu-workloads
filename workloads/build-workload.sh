@@ -36,11 +36,13 @@ download-files() {
 pack-cpio() {
     local root_dir="$1"
     local cpio_file="$2"
+    rm -f "$cpio_file"
     cd "$root_dir"
-    find . | fakeroot cpio -o -H newc > "$cpio_file"
+    find . | fakeroot cpio -o -H newc | zstd -3 -o "$cpio_file"
 }
 
 populate-src-dir
 download-files "$WORKLOAD_DIR/file_list.txt" "$BUILD_DIR/source"
+rm -rf "$PKG_DIR" && mkdir -p "$PKG_DIR"
 bash "$WORKLOAD_DIR/build.sh"
-pack-cpio "$PKG_DIR" "$BUILD_DIR/rootfs.cpio"
+pack-cpio "$PKG_DIR" "$BUILD_DIR/rootfs.cpio.zstd"

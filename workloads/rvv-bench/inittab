@@ -1,0 +1,2 @@
+::sysinit:/workloads/run.sh
+::once:/bin/nemu-halt

@@ -1,3 +1,6 @@
 [submodule "sbi/opensbi"]
 	path = sbi/opensbi
 	url = https://github.com/riscv-software-src/opensbi
+[submodule "workloads/rvv-bench/rvv-bench"]
+	path = workloads/rvv-bench/source
+	url = https://github.com/camel-cdr/rvv-bench

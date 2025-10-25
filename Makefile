@@ -38,6 +38,7 @@ PAYLOADS += build/$(1)/fw_payload.bin
 endef
 
 $(eval $(call add_workload,hello))
+$(eval $(call add_workload,rvv-bench))
 
 payloads: $(PAYLOADS)
 

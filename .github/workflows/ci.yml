@@ -17,7 +17,9 @@ jobs:
         with:
           submodules: 'true'
       - name: Build all Workloads
-        run: make tarball
+        run: |
+          sudo update-alternatives --install /bin/sh sh /bin/bash 999
+          make tarball
       - name: Upload Artifacts
         uses: actions/upload-artifact@v4
         with:

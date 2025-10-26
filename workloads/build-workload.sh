@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
 set -e
-set -x
 
 export WORKLOAD_DIR="$1"
 export WORKLOAD_BUILD_DIR

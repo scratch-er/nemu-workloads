@@ -18,9 +18,13 @@ build/buildroot/output/images/Image: build/buildroot/output/host/bin/toolchain-w
 	make -C build/buildroot BR2_EXTERNAL=$(abspath br2-external)
 
 # Build OpenSBI
-build/opensbi/build/platform/generic/lib/libplatsbi.a: sbi/build-sbi.sh build/buildroot/output/host/bin/toolchain-wrapper
+build/opensbi/build/platform/generic/firmware/fw_jump.bin: sbi/build-sbi.sh build/buildroot/output/host/bin/toolchain-wrapper
 	CROSS_COMPILE="$(abspath build/buildroot/output/host/bin)/riscv64-linux-" \
 	bash sbi/build-sbi.sh build
+
+build/startup.bin: sbi/startup.s build/buildroot/output/host/bin/toolchain-wrapper
+	$(abspath build/buildroot/output/host/bin)/riscv64-linux-as sbi/startup.s -o build/startup.o
+	$(abspath build/buildroot/output/host/bin)/riscv64-linux-objcopy -O binary --only-section .text build/startup.o build/startup.bin
 
 define add_workload
 # Build and pack workload
@@ -30,13 +34,11 @@ build/$(1)/rootfs.cpio.zstd: $$(shell find $$(abspath workloads/$(1))) build/bui
 	bash workloads/build-workload.sh workloads/$(1) build/$(1)
 
 # Build all-in-one firmware
-build/$(1)/fw_payload.bin: sbi/nemu.dts.in sbi/build-firmware.sh build/$(1)/rootfs.cpio.zstd build/buildroot/output/images/Image build/opensbi/build/platform/generic/lib/libplatsbi.a
+build/$(1)/fw_payload.bin: build/startup.bin sbi/nemu.dts.in sbi/build-sbi.sh sbi/build-firmware.sh build/$(1)/rootfs.cpio.zstd build/buildroot/output/images/Image build/opensbi/build/platform/generic/firmware/fw_jump.bin
 	mkdir -p build/$(1)/
-	cp -r build/opensbi build/$(1)/
 	CROSS_COMPILE="$$(abspath build/buildroot/output/host/bin)/riscv64-linux-" \
 	DTC="$$(abspath build/buildroot/output/host/bin)/dtc" \
-	bash sbi/build-firmware.sh build/$(1)/opensbi build/buildroot/output/images/Image build/$(1)
-	rm -rf build/$(1)/opensbi
+	bash sbi/build-firmware.sh build/startup.bin build/opensbi build/buildroot/output/images/Image build/$(1)
 
 WORKLOAD_DIRS += build/$(1)
 WORKLOADS += build/$(1)/fw_payload.bin

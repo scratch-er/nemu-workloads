@@ -42,6 +42,15 @@
         device_type = "memory";
         reg = <0x0 0x80000000 0x2 0x0000000>;
     };
+    L12: reserved-memory {
+        #address-cells = <2>;
+        #size-cells = <2>;
+        ranges;
+        reserved0: buffer@0{
+            no-map;
+            reg = <0x0 0x80000000 0x0 0x100000>;
+        };
+    };
     L19: cpus {
         #address-cells = <1>;
         #size-cells = <0>;

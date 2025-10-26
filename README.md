@@ -9,6 +9,22 @@ Simply run `make` under the repository. The Linux kernel, the workloads and the 
 - `build/workload_name/fw_payload.bin`: The all-in-one image that can be directly loaded by NEMU.
 - `build/workload_name/rootfs.cpio.zstd`: The initramfs overlay of the workload.
 
+## Format of the Image
+
+The image assumes that execution begins at `0x80000000`, and the image is loaded into a continuous memory starting from that address. The image contains the following content:
+
+| Offset  | Content                       |
+|---------|-------------------------------|
+| 0       | startup code                  |
+| 512 KiB | device tree                   |
+| 1 MiB   | OpenSBI                       |
+| 2 MiB   | Linux kernel                  |
+| --      | initramfs containing workload |
+
+The startup code is minimal, only loading the device tree address into register a1 and jumping to OpenSBI. This design may appear unnecessary. It could just put OpenSBI at the beginning. However, it enables key functionality for `libcheckpoint`. With this setup, you can replace the first 512 KiB of the image with `libcheckpoint`'s `gcpt.bin` or other custom code, reusing the existing OpenSBI and device tree. Furthermore, the entire first 1 MiB can be replaced by any custom code, as long as it correctly initializes a1 with a device tree address and passes control to OpenSBI.
+
+The initramfs is placed after the Linux kernel and aligned to 1 MiB.
+
 ## How is the Linux Kernel Built
 
 The linux kernel is built using buildroot. The `br2-external` subdirectory is a br2-external tree used for building the kernel. The kernel is built with a built-in initramfs containing:
@@ -21,7 +37,7 @@ When called without arguments, `/bin/nemu-halt` stops NEMU with exit code 0. Whe
 
 ## How are the Workloads Built
 
-Each workload becomes a binary file that NEMU loads directly. This file contains OpenSBI, the Linux kernel, and the workload. Each sub-directory of `workload` is a "workload directory" defining how to build a workload. The build occurs in an ad hoc source directory, and the resulting files install into an ad hoc package directory. The package directory's content overlays the Linux kernel's built-in initramfs.
+Each workload becomes a binary file that NEMU loads directly. This file contains the device tree, OpenSBI, the Linux kernel, and the workload. Each sub-directory of `workload` is a "workload directory" defining how to build a workload. The build occurs in an ad hoc source directory, and the resulting files install into an ad hoc package directory. The package directory's content overlays the Linux kernel's built-in initramfs.
 
 Each workload directory should contain:
 

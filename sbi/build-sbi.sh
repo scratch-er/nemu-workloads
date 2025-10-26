@@ -16,4 +16,4 @@ cp "$SCRIPT_DIR/opensbi.config" "$SBI_BUILD_DIR/platform/generic/configs/defconf
 
 # Build OpenSBI
 cd "$BUILD_DIR/opensbi"
-make PLATFORM=generic
+make PLATFORM=generic FW_JUMP_ADDR=0x80200000

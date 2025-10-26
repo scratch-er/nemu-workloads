@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 set -e
+set -x
 
 export WORKLOAD_DIR="$1"
 export WORKLOAD_BUILD_DIR
@@ -25,13 +26,13 @@ download-files() {
     local target_dir="$2"
 
     if [[ -f "$file_list" ]]; then
-        while IFS= read -r line; do
+        cat "$file_list" | if true; then cat; echo; fi | while read -r line; do
             [[ -z "$line" || "$line" =~ ^[[:space:]]*# ]] && continue
             local file_name="${line%%::*}"
             local download_link="${line#*::}"
             local target_file="$target_dir/$file_name"
             wget -O "$target_file" "$download_link"
-        done < "$file_list"
+        done
     fi
 }
 
@@ -44,7 +45,7 @@ pack-cpio() {
 }
 
 populate-src-dir
-download-files "$WORKLOAD_DIR/file_list.txt" "$WORKLOAD_BUILD_DIR/source"
+download-files "$WORKLOAD_DIR/links.txt" "$WORKLOAD_BUILD_DIR/source"
 rm -rf "$PKG_DIR" && mkdir -p "$PKG_DIR"
 bash "$WORKLOAD_DIR/build.sh"
 pack-cpio "$PKG_DIR" "$WORKLOAD_BUILD_DIR/rootfs.cpio.zstd"

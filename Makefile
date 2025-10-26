@@ -48,6 +48,7 @@ endef
 # Define all workloads
 $(eval $(call add_workload,hello))
 $(eval $(call add_workload,rvv-bench))
+$(eval $(call add_workload,coremark))
 
 # Build all all-in-one firmware images
 workloads: $(WORKLOADS)

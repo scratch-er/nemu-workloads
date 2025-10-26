@@ -1,0 +1,2 @@
+::sysinit:/coremark-pro/run.sh
+::once:/bin/nemu-halt

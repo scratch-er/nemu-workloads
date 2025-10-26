@@ -18,7 +18,7 @@ build/buildroot/output/images/Image: build/buildroot/output/host/bin/toolchain-w
 	make -C build/buildroot BR2_EXTERNAL=$(abspath br2-external)
 
 # Build OpenSBI
-build/opensbi/build/platform/generic/lib/libplatsbi.a: build/buildroot/output/host/bin/toolchain-wrapper
+build/opensbi/build/platform/generic/lib/libplatsbi.a: sbi/build-sbi.sh build/buildroot/output/host/bin/toolchain-wrapper
 	CROSS_COMPILE="$(abspath build/buildroot/output/host/bin)/riscv64-linux-" \
 	bash sbi/build-sbi.sh build
 
@@ -30,7 +30,7 @@ build/$(1)/rootfs.cpio.zstd: $$(shell find $$(abspath workloads/$(1))) build/bui
 	bash workloads/build-workload.sh workloads/$(1) build/$(1)
 
 # Build all-in-one firmware
-build/$(1)/fw_payload.bin: build/$(1)/rootfs.cpio.zstd build/buildroot/output/images/Image build/opensbi/build/platform/generic/lib/libplatsbi.a sbi/nemu.dts.in
+build/$(1)/fw_payload.bin: sbi/nemu.dts.in sbi/build-firmware.sh build/$(1)/rootfs.cpio.zstd build/buildroot/output/images/Image build/opensbi/build/platform/generic/lib/libplatsbi.a
 	mkdir -p build/$(1)/
 	cp -r build/opensbi build/$(1)/
 	CROSS_COMPILE="$$(abspath build/buildroot/output/host/bin)/riscv64-linux-" \
@@ -57,11 +57,11 @@ rootfs: $(ROOTFS)
 
 # Pack all images
 build/workloads.tar.zstd: $(WORKLOADS)
-	tar -c $(WORKLOADS) $(TAR_FLAG_WORKLOADS) | zstd -3 -T0 -o build/workloads.tar.zstd
+	tar -c $(WORKLOADS) $(TAR_FLAG_WORKLOADS) | zstd -f -3 -T0 -o build/workloads.tar.zstd
 
 # Pack all rootfs
 build/rootfs.tar.zstd: $(ROOTFS)
-	tar -c $(ROOTFS) $(TAR_FLAG_ROOTFS) | zstd -3 -T0 -o build/rootfs.tar.zstd
+	tar -c $(ROOTFS) $(TAR_FLAG_ROOTFS) | zstd -f -3 -T0 -o build/rootfs.tar.zstd
 
 # Pack images and rootfs
 tarball: build/workloads.tar.zstd build/rootfs.tar.zstd

@@ -1,1 +1,1 @@
-coremark-pro.tar.gz::https://github.com/eembc/coremark-pro/archive/refs/tags/v1.1.2743.tar.gz
+coremark-pro.tar.gz https://github.com/eembc/coremark-pro/archive/refs/tags/v1.1.2743.tar.gz 440223554134832efec4ad220795611769ded3869fbc3ce3c59b05b7ddeb9f6d

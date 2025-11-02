@@ -1,1 +1,1 @@
-coremark.tar.gz::https://github.com/eembc/coremark/archive/refs/tags/v1.01.tar.gz
+coremark.tar.gz https://github.com/eembc/coremark/archive/refs/tags/v1.01.tar.gz 99c5a6d63af85a281b4e4d6ccb522c446653c435dfec9455ad73ef9e71f28bde

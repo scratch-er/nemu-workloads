@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
 set -e
-set -x
 
 GCPT_SOURCE_DIR="$(realpath "$1")"
 GCPT_BUILD_DIR="$(realpath "$2")"

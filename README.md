@@ -40,7 +40,7 @@ Each workload becomes a binary file that NEMU loads directly. This file contains
 Each workload directory should contain:
 
 - An optional `source` sub-directory, which should be a git submodule pointing to the workload's upstream repository or contain the workload's source code.
-- An optional `links.txt` file with download links for files needed to build the workload, such as source tarballs or pre-built binaries. Each line in `links.txt` must follow the format: `file_name::link`, for example: `coremark.tar.gz::https://github.com/eembc/coremark/archive/refs/tags/v1.01.tar.gz`.
+- An optional `links.txt` file with download links for files needed to build the workload, such as source tarballs or pre-built binaries. Each line in `links.txt` must follow the format: `file_name link sha256sum`.
 - A `build.sh` script that builds the workload. After `build.sh` exits normally, the package directory must contain everything needed to run the workload, including the executable, dependencies, and an `etc/inittab` that starts the workload and stops NEMU after it finishes.
 - Any other necessary files, such as an `inittab` to start the workload, patches for building, or configuration files.
 

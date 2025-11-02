@@ -33,15 +33,19 @@ $(SBI_BIN): scripts/build-sbi.sh $(TOOLCHAIN_WRAPPER)
 	CROSS_COMPILE="$(abspath $(BUILDROOT_DIR)/output/host/bin)/riscv64-linux-" bash scripts/build-sbi.sh bootloader/opensbi build/opensbi
 
 define add_workload
+# Download files
+build/$(1)/download/sentinel: $$(shell find $$(abspath workloads/$(1)) -iname 'links.txt')
+	mkdir -p build/$(1)/
+	bash scripts/download-files.sh workloads/$(1) build/$(1)/download
+
 # Build and pack workload
-build/$(1)/rootfs.cpio.zstd: $$(shell find $$(abspath workloads/$(1))) $(TOOLCHAIN_WRAPPER)
+build/$(1)/rootfs.cpio.zstd: $$(shell find $$(abspath workloads/$(1))) $(TOOLCHAIN_WRAPPER) build/$(1)/download/sentinel
 	CROSS_COMPILE="$$(abspath $(BUILDROOT_DIR)/output/host/bin)/riscv64-linux-" \
 	SYSROOT_DIR="$$(abspath $(BUILDROOT_DIR)/output/staging)" \
 	bash scripts/build-workload.sh workloads/$(1) build/$(1)
 
 # Build all-in-one firmware
 build/$(1)/fw_payload.bin: $(GCPT_BIN) dts/xiangshan.dts.in scripts/build-sbi.sh scripts/build-firmware.sh build/$(1)/rootfs.cpio.zstd $(LINUX_IMAGE) build/opensbi/build/platform/generic/firmware/fw_jump.bin
-	mkdir -p build/$(1)/
 	CROSS_COMPILE="$$(abspath $(BUILDROOT_DIR)/output/host/bin)/riscv64-linux-" \
 	DTC="$$(abspath $(BUILDROOT_DIR)/output/host/bin)/dtc" \
 	bash scripts/build-firmware.sh $(GCPT_BIN) build/opensbi dts/xiangshan.dts.in $(LINUX_IMAGE) build/$(1)

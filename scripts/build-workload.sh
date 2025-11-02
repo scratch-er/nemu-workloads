@@ -7,6 +7,7 @@ WORKLOAD_DIR="$(realpath "$1")"
 WORKLOAD_BUILD_DIR="$(realpath "$2")"
 export SRC_DIR="$WORKLOAD_BUILD_DIR/source"
 export PKG_DIR="$WORKLOAD_BUILD_DIR/package"
+DOWNLOAD_DIR="$WORKLOAD_BUILD_DIR/download"
 
 populate-src-dir() {
     mkdir -p "$WORKLOAD_BUILD_DIR"
@@ -18,21 +19,11 @@ populate-src-dir() {
     else
         mkdir -p "$SRC_DIR"
     fi
-}
-
-download-files() {
-    local file_list="$1"
-    local target_dir="$2"
-
-    if [[ -f "$file_list" ]]; then
-        cat "$file_list" | if true; then cat; echo; fi | while read -r line; do
-            [[ -z "$line" || "$line" =~ ^[[:space:]]*# ]] && continue
-            local file_name="${line%%::*}"
-            local download_link="${line#*::}"
-            local target_file="$target_dir/$file_name"
-            wget -O "$target_file" "$download_link"
-        done
-    fi
+    for file in "$DOWNLOAD_DIR"/* ; do
+        if [ "$file" != "$DOWNLOAD_DIR"/sentinel ] ; then
+            cp "$file" "$SRC_DIR"
+        fi
+    done
 }
 
 pack-cpio() {
@@ -44,7 +35,6 @@ pack-cpio() {
 }
 
 populate-src-dir
-download-files "$WORKLOAD_DIR/links.txt" "$WORKLOAD_BUILD_DIR/source"
 rm -rf "$PKG_DIR" && mkdir -p "$PKG_DIR"
 bash "$WORKLOAD_DIR/build.sh"
 pack-cpio "$PKG_DIR" "$WORKLOAD_BUILD_DIR/rootfs.cpio.zstd"

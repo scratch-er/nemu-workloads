@@ -15,15 +15,13 @@ The image assumes that execution begins at `0x80000000`, and the image is loaded
 
 | Offset  | Content                       |
 |---------|-------------------------------|
-| 0       | startup code                  |
-| 512 KiB | device tree                   |
-| 1 MiB   | OpenSBI                       |
-| 2 MiB   | Linux kernel                  |
+| 0.0 MiB | LibCheckpointAlpha            |
+| 1.0 MiB | OpenSBI                       |
+| 1.5 MiB | device tree                   |
+| 2.0 MiB | Linux kernel                  |
 | --      | initramfs containing workload |
 
-The startup code is minimal, only loading the device tree address into register a1 and jumping to OpenSBI. This design may appear unnecessary. It could just put OpenSBI at the beginning. However, it enables key functionality for `libcheckpoint`. With this setup, you can replace the first 512 KiB of the image with `libcheckpoint`'s `gcpt.bin` or other custom code, reusing the existing OpenSBI and device tree. Furthermore, the entire first 1 MiB can be replaced by any custom code, as long as it correctly initializes a1 with a device tree address and passes control to OpenSBI.
-
-The initramfs is placed after the Linux kernel and aligned to 1 MiB.
+OpenSBI is patched (see `bootloader/opensbi.patch`) to load the device tree from a fixed location. The initramfs is placed after the Linux kernel and aligned to 1 MiB.
 
 ## How is the Linux Kernel Built
 

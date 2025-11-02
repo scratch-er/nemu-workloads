@@ -3,14 +3,13 @@ set -e
 
 STARTUP_FILE="$(realpath "$1")"
 SBI_BUILD_DIR="$(realpath "$2")"
-KERNEL_IMAGE="$(realpath "$3")"
-WORKLOAD_BUILD_DIR="$(realpath "$4")"
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+DTS_TEMPLATE="$(realpath "$3")"
+KERNEL_IMAGE="$(realpath "$4")"
+WORKLOAD_BUILD_DIR="$(realpath "$5")"
 CPIO_ARCHIVE="$WORKLOAD_BUILD_DIR/rootfs.cpio.zstd"
-DTS_TEMPLATE="$SCRIPT_DIR/nemu.dts.in"
 
 MEM_BEGIN=$(( 0x80000000 ))
-DTB_OFFSET_KB=512
+DTB_OFFSET_KB=1536
 SBI_OFFSET_KB=1024
 KERNEL_OFFSET_MB=2
 

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -e
 
-export WORKLOAD_DIR="$1"
+export WORKLOAD_DIR
 export WORKLOAD_BUILD_DIR
 WORKLOAD_DIR="$(realpath "$1")"
 WORKLOAD_BUILD_DIR="$(realpath "$2")"

@@ -1,44 +1,50 @@
 all: workloads
 
 # Download buildroot
-build/buildroot/Makefile:
+BUILDROOT_DIR := build/buildroot
+$(BUILDROOT_DIR)/Makefile:
 	mkdir -p build
 	wget https://buildroot.org/downloads/buildroot-2025.08.1.tar.gz -O build/buildroot.tar.gz
 	tar -xf build/buildroot.tar.gz -C build
-	mv build/buildroot-2025.08.1 build/buildroot
+	mv build/buildroot-2025.08.1 $(BUILDROOT_DIR)
 
 # Prepare buildroot SDK
-build/buildroot/output/host/bin/toolchain-wrapper: $(shell find $(abspath br2-external)) build/buildroot/Makefile
-	make -C build/buildroot BR2_EXTERNAL=$(abspath br2-external) nemu_defconfig
-	make -C build/buildroot BR2_EXTERNAL=$(abspath br2-external) prepare-sdk
+TOOLCHAIN_WRAPPER := $(BUILDROOT_DIR)/output/host/bin/toolchain-wrapper
+$(TOOLCHAIN_WRAPPER): br2-external/configs/nemu_defconfig $(BUILDROOT_DIR)/Makefile
+	make -C $(BUILDROOT_DIR) BR2_EXTERNAL=$(abspath br2-external) nemu_defconfig
+	make -C $(BUILDROOT_DIR) BR2_EXTERNAL=$(abspath br2-external) prepare-sdk
 
 # Build Linux kernel
-build/buildroot/output/images/Image: build/buildroot/output/host/bin/toolchain-wrapper
-	make -C build/buildroot BR2_EXTERNAL=$(abspath br2-external) nemu_defconfig
-	make -C build/buildroot BR2_EXTERNAL=$(abspath br2-external)
+LINUX_IMAGE := $(BUILDROOT_DIR)/output/images/Image
+$(LINUX_IMAGE): $(TOOLCHAIN_WRAPPER) br2-external/configs/nemu_defconfig br2-external/board/openxiangshan/nemu/linux.config
+	make -C $(BUILDROOT_DIR) BR2_EXTERNAL=$(abspath br2-external) nemu_defconfig
+	make -C $(BUILDROOT_DIR) BR2_EXTERNAL=$(abspath br2-external)
+
+# Build LibCheckpointAlpha
+GCPT_BUILD_DIR := build/LibCheckpointAlpha
+GCPT_BIN := $(GCPT_BUILD_DIR)/build/gcpt.bin
+$(GCPT_BIN): scripts/build-gcpt.sh $(TOOLCHAIN_WRAPPER)
+	CROSS_COMPILE="$(abspath $(BUILDROOT_DIR)/output/host/bin)/riscv64-linux-" bash scripts/build-gcpt.sh bootloader/LibCheckpointAlpha $(GCPT_BUILD_DIR)
 
 # Build OpenSBI
-build/opensbi/build/platform/generic/firmware/fw_jump.bin: sbi/build-sbi.sh build/buildroot/output/host/bin/toolchain-wrapper
-	CROSS_COMPILE="$(abspath build/buildroot/output/host/bin)/riscv64-linux-" \
-	bash sbi/build-sbi.sh build
-
-build/startup.bin: sbi/startup.s build/buildroot/output/host/bin/toolchain-wrapper
-	$(abspath build/buildroot/output/host/bin)/riscv64-linux-as sbi/startup.s -o build/startup.o
-	$(abspath build/buildroot/output/host/bin)/riscv64-linux-objcopy -O binary --only-section .text build/startup.o build/startup.bin
+SBI_BUILD_DIR := build/opensbi
+SBI_BIN := $(SBI_BUILD_DIR)/build/platform/generic/firmware/fw_jump.bin
+$(SBI_BIN): scripts/build-sbi.sh $(TOOLCHAIN_WRAPPER)
+	CROSS_COMPILE="$(abspath $(BUILDROOT_DIR)/output/host/bin)/riscv64-linux-" bash scripts/build-sbi.sh bootloader/opensbi build/opensbi
 
 define add_workload
 # Build and pack workload
-build/$(1)/rootfs.cpio.zstd: $$(shell find $$(abspath workloads/$(1))) build/buildroot/output/host/bin/toolchain-wrapper
-	CROSS_COMPILE="$$(abspath build/buildroot/output/host/bin)/riscv64-linux-" \
-	SYSROOT_DIR="$$(abspath build/buildroot/output/staging)" \
-	bash workloads/build-workload.sh workloads/$(1) build/$(1)
+build/$(1)/rootfs.cpio.zstd: $$(shell find $$(abspath workloads/$(1))) $(TOOLCHAIN_WRAPPER)
+	CROSS_COMPILE="$$(abspath $(BUILDROOT_DIR)/output/host/bin)/riscv64-linux-" \
+	SYSROOT_DIR="$$(abspath $(BUILDROOT_DIR)/output/staging)" \
+	bash scripts/build-workload.sh workloads/$(1) build/$(1)
 
 # Build all-in-one firmware
-build/$(1)/fw_payload.bin: build/startup.bin sbi/nemu.dts.in sbi/build-sbi.sh sbi/build-firmware.sh build/$(1)/rootfs.cpio.zstd build/buildroot/output/images/Image build/opensbi/build/platform/generic/firmware/fw_jump.bin
+build/$(1)/fw_payload.bin: $(GCPT_BIN) dts/xiangshan.dts.in scripts/build-sbi.sh scripts/build-firmware.sh build/$(1)/rootfs.cpio.zstd $(LINUX_IMAGE) build/opensbi/build/platform/generic/firmware/fw_jump.bin
 	mkdir -p build/$(1)/
-	CROSS_COMPILE="$$(abspath build/buildroot/output/host/bin)/riscv64-linux-" \
-	DTC="$$(abspath build/buildroot/output/host/bin)/dtc" \
-	bash sbi/build-firmware.sh build/startup.bin build/opensbi build/buildroot/output/images/Image build/$(1)
+	CROSS_COMPILE="$$(abspath $(BUILDROOT_DIR)/output/host/bin)/riscv64-linux-" \
+	DTC="$$(abspath $(BUILDROOT_DIR)/output/host/bin)/dtc" \
+	bash scripts/build-firmware.sh $(GCPT_BIN) build/opensbi dts/xiangshan.dts.in $(LINUX_IMAGE) build/$(1)
 
 WORKLOAD_DIRS += build/$(1)
 WORKLOADS += build/$(1)/fw_payload.bin

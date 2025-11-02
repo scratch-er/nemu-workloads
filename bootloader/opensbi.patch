@@ -1,0 +1,25 @@
+diff --git a/firmware/fw_base.S b/firmware/fw_base.S
+index 5300ecf2..878aedfd 100644
+--- a/firmware/fw_base.S
++++ b/firmware/fw_base.S
+@@ -129,9 +129,19 @@ _bss_zero:
+ 	call	fw_save_info
+ 	MOV_5R	a0, s0, a1, s1, a2, s2, a3, s3, a4, s4
+ 
++	/* Override previous arg1
++	 * Here, OpenSBI is patched so that if FW_JUMP_FDT_ADDR
++	 * or FW_JUMP_FDT_OFFSET is defined, then OpenSBI will
++	 * assume that the previous stage has put FDT there.
++	 */
+ #ifdef FW_FDT_PATH
+-	/* Override previous arg1 */
+ 	lla	a1, fw_fdt_bin
++#elif defined(FW_JUMP_FDT_ADDR)
++	li a1, FW_JUMP_FDT_ADDR
++#elif defined(FW_JUMP_FDT_OFFSET)
++	lla t0, _fw_start
++	li a1, FW_JUMP_FDT_OFFSET
++	add a1, a1, t0
+ #endif
+ 
+ 	/*

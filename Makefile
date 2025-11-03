@@ -63,6 +63,12 @@ $(eval $(call add_workload,rvv-bench))
 $(eval $(call add_workload,coremark))
 $(eval $(call add_workload,coremark-pro))
 
+prepare-sdk: $(TOOLCHAIN_WRAPPER)
+
+source: $(BUILDROOT_DIR)/Makefile
+	make -C $(BUILDROOT_DIR) BR2_EXTERNAL=$(abspath br2-external) nemu_defconfig
+	make -C $(BUILDROOT_DIR) BR2_EXTERNAL=$(abspath br2-external) source
+
 # Build all all-in-one firmware images
 workloads: $(WORKLOADS)
 
@@ -84,4 +90,4 @@ tarball: build/workloads.tar.zstd build/rootfs.tar.zstd
 clean-workloads:
 	rm -rf $(WORKLOAD_DIRS) build/workloads.tar.zstd build/rootfs.tar.zstd
 
-.PHONY: all workloads rootfs tarball clean-workloads
+.PHONY: all prepare-sdk source workloads rootfs tarball clean-workloads

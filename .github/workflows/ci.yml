@@ -1,21 +1,56 @@
 name: CI
 
 on:
+
   push:
     branches: [ main ]
   pull_request:
     branches: [ main ]
 
+env:
+
+  # This is used as the key of the cache.
+  # Change this if buildroot version is changed,
+  # Or the buildroot config is changed.
+  BUILDROOT_VERSION: 2025.08.1-1
+
 jobs:
-  build-all:
+
+  prepare-sdk:
     runs-on: ubuntu-latest
-    timeout-minutes: 120
-    name: Build all testing workloads
+    name: Prepare the buildroot SDK and source files
+    timeout-minutes: 10
     steps:
       - name: Fetch Repository
         uses: actions/checkout@v4
         with:
           submodules: 'true'
+      - name: Cache buildroot SDK
+        uses: actions/cache@v4
+        id: cache-buildroot
+        with:
+          path: build
+          key: ${{ env.BUILDROOT_VERSION }}
+      - name: Download source tarballs
+        if: steps.cache-buildroot.outputs.cache-hit != 'true'
+        run: |
+          make source
+
+  build-all:
+    runs-on: ubuntu-latest
+    name: Build all testing workloads
+    needs: prepare-sdk
+    timeout-minutes: 120
+    steps:
+      - name: Fetch Repository
+        uses: actions/checkout@v4
+        with:
+          submodules: 'true'
+      - name: Restore cache
+        uses: actions/cache@v4
+        with:
+          path: build
+          key: ${{ env.BUILDROOT_VERSION }}
       - name: Build all Workloads
         run: |
           sudo update-alternatives --install /bin/sh sh /bin/bash 999

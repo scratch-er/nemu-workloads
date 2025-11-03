@@ -80,6 +80,7 @@ $(eval $(call add_workload_linux,rvv-bench))
 $(eval $(call add_workload_linux,coremark))
 $(eval $(call add_workload_linux,coremark-pro))
 $(eval $(call add_workload_am,riscv-tests))
+$(eval $(call add_workload_am,riscv-vector-tests))
 
 prepare-sdk: $(TOOLCHAIN_WRAPPER)
 

@@ -55,11 +55,11 @@ jobs:
         run: |
           sudo update-alternatives --install /bin/sh sh /bin/bash 999
           make tarball
+          cp build/buildroot/output/images/Image build/
       - name: Upload Artifacts
         uses: actions/upload-artifact@v4
         with:
           name: nemu-workloads
           path: |
             build/workloads.tar.zstd
-            build/rootfs.tar.zstd
-            build/buildroot/output/images/Image
+            build/Image

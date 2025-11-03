@@ -16,3 +16,9 @@
 [submodule "workloads/riscv-vector-tests/riscv-vector-tests"]
 	path = workloads/riscv-vector-tests/source
 	url = https://github.com/OpenXiangShan/riscv-vector-tests
+[submodule "workloads/kvmtool/source/kvmtool"]
+	path = workloads/kvmtool/source/kvmtool
+	url = https://github.com/kvmtool/kvmtool
+[submodule "workloads/kvmtool/source/dtc"]
+	path = workloads/kvmtool/source/dtc
+	url = https://git.kernel.org/pub/scm/utils/dtc/dtc.git

@@ -24,7 +24,7 @@ jobs:
       - name: Fetch Repository
         uses: actions/checkout@v4
         with:
-          submodules: 'true'
+          submodules: 'recursive'
       - name: Cache buildroot SDK
         uses: actions/cache@v4
         id: cache-buildroot
@@ -45,7 +45,7 @@ jobs:
       - name: Fetch Repository
         uses: actions/checkout@v4
         with:
-          submodules: 'true'
+          submodules: 'recursive'
       - name: Restore cache
         uses: actions/cache@v4
         with:

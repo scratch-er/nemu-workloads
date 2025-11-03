@@ -32,36 +32,54 @@ SBI_BIN := $(SBI_BUILD_DIR)/build/platform/generic/firmware/fw_jump.bin
 $(SBI_BIN): scripts/build-sbi.sh $(TOOLCHAIN_WRAPPER)
 	CROSS_COMPILE="$(abspath $(BUILDROOT_DIR)/output/host/bin)/riscv64-linux-" bash scripts/build-sbi.sh bootloader/opensbi build/opensbi
 
-define add_workload
+define add_workload_linux
 # Download files
 build/$(1)/download/sentinel: $$(shell find $$(abspath workloads/$(1)) -iname 'links.txt')
 	mkdir -p build/$(1)/
 	bash scripts/download-files.sh workloads/$(1) build/$(1)/download
 
 # Build and pack workload
-build/$(1)/rootfs.cpio.zstd: $$(shell find $$(abspath workloads/$(1))) $(TOOLCHAIN_WRAPPER) build/$(1)/download/sentinel
+build/$(1)/rootfs.cpio.zstd: $$(shell find $$(abspath workloads/$(1))) $(TOOLCHAIN_WRAPPER) build/$(1)/download/sentinel scripts/build-workload-linux.sh
 	CROSS_COMPILE="$$(abspath $(BUILDROOT_DIR)/output/host/bin)/riscv64-linux-" \
 	SYSROOT_DIR="$$(abspath $(BUILDROOT_DIR)/output/staging)" \
-	bash scripts/build-workload.sh workloads/$(1) build/$(1)
+	bash scripts/build-workload-linux.sh workloads/$(1) build/$(1)
 
 # Build all-in-one firmware
-build/$(1)/fw_payload.bin: $(GCPT_BIN) dts/xiangshan.dts.in scripts/build-sbi.sh scripts/build-firmware.sh build/$(1)/rootfs.cpio.zstd $(LINUX_IMAGE) build/opensbi/build/platform/generic/firmware/fw_jump.bin
+build/$(1)/fw_payload.bin: $(GCPT_BIN) dts/xiangshan.dts.in scripts/build-sbi.sh scripts/build-firmware-linux.sh build/$(1)/rootfs.cpio.zstd $(LINUX_IMAGE) build/opensbi/build/platform/generic/firmware/fw_jump.bin
 	CROSS_COMPILE="$$(abspath $(BUILDROOT_DIR)/output/host/bin)/riscv64-linux-" \
 	DTC="$$(abspath $(BUILDROOT_DIR)/output/host/bin)/dtc" \
-	bash scripts/build-firmware.sh $(GCPT_BIN) build/opensbi dts/xiangshan.dts.in $(LINUX_IMAGE) build/$(1)
+	bash scripts/build-firmware-linux.sh $(GCPT_BIN) build/opensbi dts/xiangshan.dts.in $(LINUX_IMAGE) build/$(1)
 
 WORKLOAD_DIRS += build/$(1)
-WORKLOADS += build/$(1)/fw_payload.bin
+WORKLOADS_LINUX += build/$(1)/fw_payload.bin
 ROOTFS += build/$(1)/rootfs.cpio.zstd
-TAR_FLAG_WORKLOADS += --transform='s|build/$(1)/fw_payload.bin|fw_payload_$(1).bin|'
-TAR_FLAG_ROOTFS += --transform='s|build/$(1)/rootfs.cpio.zstd|rootfs_$(1).cpio.zstd|'
+TARFLAGS += --transform='s|^build/$(1)|workloads/$(1)|'
+endef
+
+define add_workload_am
+# Download files
+build/$(1)/download/sentinel: $$(shell find $$(abspath workloads/$(1)) -iname 'links.txt')
+	mkdir -p build/$(1)/
+	bash scripts/download-files.sh workloads/$(1) build/$(1)/download
+
+# Build and pack workload
+build/$(1)/sentinel: $$(shell find $$(abspath workloads/$(1))) $(TOOLCHAIN_WRAPPER) build/$(1)/download/sentinel scripts/build-workload-am.sh
+	CROSS_COMPILE="$$(abspath $(BUILDROOT_DIR)/output/host/bin)/riscv64-linux-" \
+	SYSROOT_DIR="$$(abspath $(BUILDROOT_DIR)/output/staging)" \
+	bash scripts/build-workload-am.sh workloads/$(1) build/$(1) nexus-am
+
+WORKLOAD_DIRS += build/$(1)
+WORKLOADS_AM += build/$(1)/package
+WORKLOADS_AM_SENTINEL += build/$(1)/sentinel
+TARFLAGS += --transform='s|^build/$(1)/package|workloads/$(1)|'
 endef
 
 # Define all workloads
-$(eval $(call add_workload,hello))
-$(eval $(call add_workload,rvv-bench))
-$(eval $(call add_workload,coremark))
-$(eval $(call add_workload,coremark-pro))
+$(eval $(call add_workload_linux,hello))
+$(eval $(call add_workload_linux,rvv-bench))
+$(eval $(call add_workload_linux,coremark))
+$(eval $(call add_workload_linux,coremark-pro))
+$(eval $(call add_workload_am,riscv-tests))
 
 prepare-sdk: $(TOOLCHAIN_WRAPPER)
 
@@ -70,21 +88,17 @@ source: $(BUILDROOT_DIR)/Makefile
 	make -C $(BUILDROOT_DIR) BR2_EXTERNAL=$(abspath br2-external) source
 
 # Build all all-in-one firmware images
-workloads: $(WORKLOADS)
+workloads: $(WORKLOADS_LINUX) $(WORKLOADS_AM_SENTINEL)
 
 # Build all rootfs
 rootfs: $(ROOTFS)
 
-# Pack all images
-build/workloads.tar.zstd: $(WORKLOADS)
-	tar -c $(WORKLOADS) $(TAR_FLAG_WORKLOADS) | zstd -f -3 -T0 -o build/workloads.tar.zstd
-
-# Pack all rootfs
-build/rootfs.tar.zstd: $(ROOTFS)
-	tar -c $(ROOTFS) $(TAR_FLAG_ROOTFS) | zstd -f -3 -T0 -o build/rootfs.tar.zstd
+# Pack all workloads
+build/workloads.tar.zstd: $(WORKLOADS_LINUX) $(WORKLOADS_AM_SENTINEL)
+	tar -c $(WORKLOADS_LINUX) $(ROOTFS) $(WORKLOADS_AM) $(TARFLAGS) | zstd -f -3 -T0 -o build/workloads.tar.zstd
 
 # Pack images and rootfs
-tarball: build/workloads.tar.zstd build/rootfs.tar.zstd
+tarball: build/workloads.tar.zstd
 
 # Remove all built workloads
 clean-workloads:

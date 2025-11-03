@@ -7,3 +7,9 @@
 [submodule "bootloader/LibCheckpointAlpha"]
 	path = bootloader/LibCheckpointAlpha
 	url = https://github.com/openxiangshan/LibCheckpointAlpha
+[submodule "workloads/riscv-tests/source"]
+	path = workloads/riscv-tests/source
+	url = https://github.com/scratch-er/riscv-tests
+[submodule "nexus-am"]
+	path = nexus-am
+	url = https://github.com/OpenXiangShan/nexus-am/

@@ -3,25 +3,23 @@ set -e
 
 build-test() {
     test_dir="$1"
-    make -C "$test_dir" ARCH=riscv64-xs CROSS_COMPILE="$CROSS_COMPILE"
+    make -C "$test_dir" ARCH=riscv64-xs CROSS_COMPILE="$CROSS_COMPILE" -j1
     cp "$test_dir"/build/*.bin "$PKG_DIR"/bin/
     cp "$test_dir"/build/*.elf "$PKG_DIR"/elf/
 }
 
-skip_tests=(bitmanip cacheoptest cputest crypto frequencytest)
+tests=(
+    aliasgenerator aliastest amtest cacheoptest/icache cacheoptest/dcache cacheoptest/llc
+    countertest cputest dualcoretest frequencytest frontendtest klibtest memscantest mmiotest
+    oraclebptest softmdutest softprefetchtest zacas
+)
+
 mkdir -p "$PKG_DIR"/{bin,elf}
-for test_dir in "$AM_HOME"/tests/* ; do
-    if ! [[ "${skip_tests[@]}" =~ "$(basename "$test_dir")" ]]; then
-        build-test "$test_dir"
-    fi
+for test in "${tests[@]}" ; do
+    build-test "$AM_HOME"/tests/"$test"
 done
 
-# `cputest` and `frequencytest` must be built after other tests are built,
-# or ar would panic that "ar: am/build/am-riscv64-xs.a: malformed archive"
-# I do not know why. But it only works this way
-build-test "$AM_HOME"/tests/cputest
-build-test "$AM_HOME"/tests/frequencytest
-
+# build test bitmanip
 (
     set -e
     cd "$AM_HOME"/tests/bitmanip
@@ -33,13 +31,6 @@ build-test "$AM_HOME"/tests/frequencytest
     mv build/bitmanip-riscv64-xs.bin "$PKG_DIR"/bin/bitmanip.bin
     mv build/bitmanip-riscv64-xs.elf "$PKG_DIR"/elf/bitmanip.elf
 )
-
-# `cacheoptest` must be built even after `bitmanip`,
-# or ar would panic that "ar: am/build/am-riscv64-xs.a: malformed archive"
-# I do not know why. But it only works this way
-build-test "$AM_HOME"/tests/cacheoptest/icache
-build-test "$AM_HOME"/tests/cacheoptest/dcache
-build-test "$AM_HOME"/tests/cacheoptest/llc
 
 # TODO: build `crypto`
 cd "$AM_HOME"/tests/crypto

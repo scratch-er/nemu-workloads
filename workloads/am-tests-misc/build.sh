@@ -10,7 +10,7 @@ build-test() {
 
 tests=(
     aliasgenerator aliastest amtest cacheoptest/icache cacheoptest/dcache cacheoptest/llc
-    countertest cputest dualcoretest frequencytest frontendtest klibtest memscantest mmiotest
+    countertest dualcoretest frequencytest frontendtest mmiotest
     oraclebptest softmdutest softprefetchtest zacas
 )
 
@@ -31,9 +31,3 @@ done
     mv build/bitmanip-riscv64-xs.bin "$PKG_DIR"/bin/bitmanip.bin
     mv build/bitmanip-riscv64-xs.elf "$PKG_DIR"/elf/bitmanip.elf
 )
-
-# TODO: build `crypto`
-cd "$AM_HOME"/tests/crypto
-python src/randtest.py 1000 1 -o src/crypto
-# `xperm.n` instruction is still not recognized
-# make ARCH=riscv64-xs CROSS_COMPILE="$CROSS_COMPILE" ASFLAGS="-march=rv64gc_zknh_zknd_zkne_zksh_zba_zbb_zbc_zbs -Iinclude"

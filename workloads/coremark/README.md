@@ -11,7 +11,7 @@ This is a Linux workload.
 The workload downloads and builds the CoreMark benchmark from source. It uses an inittab configuration that:
 
 1. Runs the coremark executable with specific parameters for reproducible results
-2. Halts the system with nemu-halt, passing the exit code from coremark
+2. Halts the system with nemu-trap, passing the exit code from coremark
 
 The benchmark runs with these parameters, which is a "standard" verification run of CoreMark:
 

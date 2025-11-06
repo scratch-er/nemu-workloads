@@ -12,4 +12,4 @@ The workload builds multiple vector-optimized benchmarks from source. It uses an
 
 1. Executes the run.sh script which runs all benchmark executables sequentially
 2. Each benchmark is executed and checked for successful completion
-3. System is halted with nemu-halt after all benchmarks complete
+3. System is halted with nemu-trap after all benchmarks complete

@@ -1,7 +1,7 @@
-config BR2_PACKAGE_NEMU_HALT
-	bool "nemu-halt"
+config BR2_PACKAGE_NEMU_EXEC
+	bool "nemu-trap"
 	depends on BR2_RISCV_ISA_RVI
 	help
-	  A program that stops NEMU.
+	  NEMU workload shim.
 
 	  https://github.com/scratch-er/nemu-workloads

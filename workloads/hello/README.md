@@ -11,4 +11,4 @@ This is a Linux workload.
 The workload compiles a simple C program that prints "Hello, argv[1]!" to the console. It uses an inittab configuration that:
 
 1. Runs the hello program with "RISC-V" as an argument
-2. Immediately halts the system after execution using nemu-halt
+2. Immediately halts the system after execution using nemu-trap

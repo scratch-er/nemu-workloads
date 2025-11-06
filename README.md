@@ -57,9 +57,21 @@ The Linux kernel is built using buildroot for Linux workloads. The `br2-external
 
 - A musl dynamic C library
 - BusyBox-based init and core utilities
-- `/bin/nemu-halt` for stopping NEMU
+- `/bin/nemu-trap` for sending a debug call to NEMU
+- `/bin/nemu-exec` as a workload launcher.
 
-When called without arguments, `/bin/nemu-halt` stops NEMU with exit code 0. When called with arguments, it stops NEMU using the exit code from the first argument, which must be a non-negative integer.
+When called without arguments, `/bin/nemu-trap` stops NEMU with exit code 0. When called with arguments, it sends debug signal to NEMU using the code from the first argument, which must be a decimal integer.
+
+`/bin/nemu-exec` should be called with arguments specifying the workload. It disables NEMU timer interrupt, makes NEMU to enter simpoint profiling mode, starts the workload, and stops NEMU with the exit code of the workload. `nemu-exec cmd arg1 arg2` is roughly equivalent with:
+
+```shell
+nemu-trap 256
+nemu-trap 257
+cmd arg1 arg2
+nemu-trap $?
+```
+
+For more information about NEMU debug calls and simpoint, please refer to [Xiangshan Docs](https://docs.xiangshan.cc/zh-cn/latest/tools/simpoint/).
 
 ## How are Linux Workloads Built
 

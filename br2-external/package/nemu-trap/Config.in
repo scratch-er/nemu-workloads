@@ -1,0 +1,7 @@
+config BR2_PACKAGE_NEMU_TRAP
+	bool "nemu-trap"
+	depends on BR2_RISCV_ISA_RVI
+	help
+	  A program that sends debug signal NEMU.
+
+	  https://github.com/scratch-er/nemu-workloads

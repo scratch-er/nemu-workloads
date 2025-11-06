@@ -1,2 +1,2 @@
-::sysinit:/coremark-pro/run.sh
-::once:/bin/nemu-halt
+::sysinit:sh -c "nemu-trap 256; nemu-trap 257"
+::once:sh -c "/coremark-pro/run.sh; nemu-trap -1"

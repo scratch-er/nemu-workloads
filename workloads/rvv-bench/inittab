@@ -1,2 +1,2 @@
-::sysinit:/workloads/run.sh
-::once:/bin/nemu-halt
+::sysinit:sh -c "nemu-trap 256; nemu-trap 257"
+::once:sh -c "/workloads/run.sh; nemu-trap -1"

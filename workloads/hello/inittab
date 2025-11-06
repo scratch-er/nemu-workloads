@@ -1,2 +1,1 @@
-::sysinit:/usr/bin/hello "RISC-V"
-::once:/bin/nemu-halt
+::sysinit:nemu-exec hello RISC-V

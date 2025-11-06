@@ -1,1 +1,2 @@
-source "$BR2_EXTERNAL_NEMU_PATH/package/nemu-halt/Config.in"
+source "$BR2_EXTERNAL_NEMU_PATH/package/nemu-trap/Config.in"
+source "$BR2_EXTERNAL_NEMU_PATH/package/nemu-exec/Config.in"

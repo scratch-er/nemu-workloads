@@ -18,7 +18,18 @@ For AM workloads:
 
 - `build/workload_name/package/`: Directory containing the compiled binaries.
 
+## Build Requirements
+
+Any modern Linux distributions should be okay. The build system of this project is using the toolchain provided by buildroot, so you do not have to set up the toolchains manually to build most workloads. Some workloads require additional toolchians not provided by buildroot. Please refer to the README files of each workload (`workloads/workload_name/README.md`) for details.
+
 To create a compressed tarball containing all built workloads, run `make tarball`. This will generate `build/workloads.tar.zstd` which contains all Linux firmware images, root filesystems, and AM workload binaries in a single archive file.
+
+## TODO List
+
+[] Add workload `kvmtool`.
+[] Add workload `Xvisor`.
+[] Support for building multiple device trees for each Linux workload.
+[] Test Linux workloads with checkpoint functionalities of NEMU.
 
 ## Format of the Image
 

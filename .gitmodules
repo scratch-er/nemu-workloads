@@ -1,7 +1,7 @@
 [submodule "sbi/opensbi"]
 	path = bootloader/opensbi
 	url = https://github.com/riscv-software-src/opensbi
-[submodule "workloads/rvv-bench/rvv-bench"]
+[submodule "workloads/rvv-bench/source"]
 	path = workloads/rvv-bench/source
 	url = https://github.com/camel-cdr/rvv-bench
 [submodule "bootloader/LibCheckpointAlpha"]
@@ -9,7 +9,7 @@
 	url = https://github.com/openxiangshan/LibCheckpointAlpha
 [submodule "workloads/riscv-tests/source"]
 	path = workloads/riscv-tests/source
-	url = https://github.com/scratch-er/riscv-tests
+	url = https://github.com/OpenXiangShan/riscv-tests
 [submodule "nexus-am"]
 	path = nexus-am
 	url = https://github.com/OpenXiangShan/nexus-am/

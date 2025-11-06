@@ -26,10 +26,10 @@ To create a compressed tarball containing all built workloads, run `make tarball
 
 ## TODO List
 
-[] Add workload `kvmtool`.
-[] Add workload `Xvisor`.
-[] Support for building multiple device trees for each Linux workload.
-[] Test Linux workloads with checkpoint functionalities of NEMU.
+- [ ] Add workload `kvmtool`.
+- [ ] Add workload `Xvisor`.
+- [ ] Support for building multiple device trees for each Linux workload.
+- [ ] Test Linux workloads with checkpoint functionalities of NEMU.
 
 ## Format of the Image
 

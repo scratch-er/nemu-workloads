@@ -81,6 +81,8 @@ $(eval $(call add_workload_linux,coremark))
 $(eval $(call add_workload_linux,coremark-pro))
 $(eval $(call add_workload_am,riscv-tests))
 $(eval $(call add_workload_am,riscv-vector-tests))
+$(eval $(call add_workload_am,am-tests-cputest))
+$(eval $(call add_workload_am,am-tests-misc))
 
 prepare-sdk: $(TOOLCHAIN_WRAPPER)
 

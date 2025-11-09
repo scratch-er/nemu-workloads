@@ -1,0 +1,1 @@
+::sysinit:sh -c "echo Hello, RISC-V from guest!; poweroff"

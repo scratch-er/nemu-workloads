@@ -42,6 +42,7 @@ build/$(1)/download/sentinel: $$(shell find $$(abspath workloads/$(1)) -iname 'l
 build/$(1)/rootfs.cpio.zstd: $$(shell find $$(abspath workloads/$(1))) $(TOOLCHAIN_WRAPPER) build/$(1)/download/sentinel scripts/build-workload-linux.sh
 	CROSS_COMPILE="$$(abspath $(BUILDROOT_DIR)/output/host/bin)/riscv64-linux-" \
 	SYSROOT_DIR="$$(abspath $(BUILDROOT_DIR)/output/staging)" \
+	BUILDROOT_DIR="$$(abspath $(BUILDROOT_DIR))" \
 	bash scripts/build-workload-linux.sh workloads/$(1) build/$(1)
 
 # Build all-in-one firmware

@@ -1,2 +1,1 @@
-::sysinit:/usr/bin/lkvm run -m 64 -c2 --console serial -p "console=ttyS0 earlycon=sbi" /Image --debug
-::once:/bin/nemu-halt
+::once:/guest/run.sh

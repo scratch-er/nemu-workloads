@@ -53,7 +53,6 @@ jobs:
           key: ${{ env.BUILDROOT_VERSION }}
       - name: Build all Workloads
         run: |
-          sudo update-alternatives --install /bin/sh sh /bin/bash 999
           make tarball
           cp build/buildroot/output/images/Image build/
           cp build/LibCheckpointAlpha/build/gcpt.bin build/

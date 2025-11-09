@@ -11,3 +11,6 @@ This workload builds and runs `lkvm`, a lightweight virtual machine manager (kvm
 3. Creates a minimal guest initramfs from the contents of the `source/guest` directory, which contains only an `inittab`.
 4. Installs the compiled lkvm binary, configuration files, and guest components to the package directory. The guest kernel is the same with the host kernel. The guest just shuts down after printing a short message.
 
+## Note
+
+NEMU profiling mode is not turned on in this workload as it can cause problems when running virtualization. Simulating more than one core using `kvmtool` will also fail.

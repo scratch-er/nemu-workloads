@@ -92,6 +92,7 @@ $(eval $(call add_workload_am,riscv-tests))
 $(eval $(call add_workload_am,riscv-vector-tests))
 $(eval $(call add_workload_am,cputest))
 $(eval $(call add_workload_am,misc-tests))
+$(eval $(call add_workload_am,hello))
 
 prepare-sdk: $(TOOLCHAIN_WRAPPER)
 

@@ -11,22 +11,27 @@ Simply run `make` under the repository. The Linux kernel, the workloads and the 
 
 For Linux workloads:
 
-- `build/workload_name/fw_payload.bin`: The all-in-one image that can be directly loaded by NEMU.
-- `build/workload_name/rootfs.cpio`: The initramfs overlay of the workload.
+- `build/linux-workloads/workload_name/fw_payload.bin`: The all-in-one image that can be directly loaded by NEMU.
+- `build/linux-workloads/workload_name/rootfs.cpio`: The initramfs overlay of the workload.
 
 For AM workloads:
 
-- `build/workload_name/package/`: Directory containing the compiled binaries.
+- `build/am-workloads/workload_name/package/`: Directory containing the compiled binaries.
+
+You can also build a single workload with:
+
+- `make linux/workload_name` for a Linux workload.
+- `make am/workload_name` for an AM workload.
 
 ## Build Requirements
 
-Any modern Linux distributions should be okay. The build system of this project is using the toolchain provided by buildroot, so you do not have to set up the toolchains manually to build most workloads. Some workloads require additional toolchians not provided by buildroot. Please refer to the README files of each workload (`workloads/workload_name/README.md`) for details.
+Any modern Linux distributions should be okay. The build system of this project is using the toolchain provided by buildroot, so you do not have to set up the toolchains manually to build most workloads. Some workloads require additional toolchians not provided by buildroot. Please refer to the README file of each workload (`README.md` in the workload directory) for details.
 
 To create a compressed tarball containing all built workloads, run `make tarball`. This will generate `build/workloads.tar.zstd` which contains all Linux firmware images, root filesystems, and AM workload binaries in a single archive file.
 
 ## TODO List
 
-- [ ] Add workload `kvmtool`.
+- [x] Add workload `kvmtool`.
 - [ ] Add workload `Xvisor`.
 - [ ] Support for building multiple device trees for each Linux workload.
 - [ ] Test Linux workloads with checkpoint functionalities of NEMU.
@@ -81,7 +86,7 @@ Each workload directory should contain:
 
 - An optional `source` sub-directory, which should be a git submodule pointing to the workload's upstream repository or contain the workload's source code.
 - An optional `links.txt` file with download links for files needed to build the workload, such as source tarballs or pre-built binaries. Each line in `links.txt` must follow the format: `file_name link sha256sum`.
-- A `build.sh` script that builds the workload. After `build.sh` exits normally, the package directory must contain everything needed to run the workload, including the executable, dependencies, and an `etc/inittab` that starts the workload and stops NEMU after it finishes.
+- A `build.sh` script that builds the workload. After `build.sh` exits normally, the package directory must contain everything needed to run the workload, including the executable, dependencies, and an `/etc/inittab` that starts the workload and stops NEMU after it finishes.
 - Any other necessary files, such as an `inittab` to start the workload, patches for building, or configuration files.
 
 For each Linux workload, the build system follows these steps:
@@ -133,12 +138,12 @@ You can add a workload with the following steps:
 
 ### Adding a Linux Workload
 
-1. Add a workload subdirectory in `workloads` as stated above for Linux workloads.
+1. Add a workload subdirectory in `workloads/linux` as stated above for Linux workloads.
 2. Add `$(eval $(call add_workload_linux,workload_name))` in the Makefile.
 
 ### Adding an AM Workload
 
-1. Add a workload subdirectory in `workloads` as stated above for AM workloads.
+1. Add a workload subdirectory in `workloads/am` as stated above for AM workloads.
 2. Add `$(eval $(call add_workload_am,workload_name))` in the Makefile.
 
 Then run `make` to build your new workload.

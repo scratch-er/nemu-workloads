@@ -1,24 +1,24 @@
 [submodule "sbi/opensbi"]
 	path = bootloader/opensbi
 	url = https://github.com/riscv-software-src/opensbi
-[submodule "workloads/rvv-bench/source"]
-	path = workloads/rvv-bench/source
+[submodule "workloads/linux/rvv-bench/source"]
+	path = workloads/linux/rvv-bench/source
 	url = https://github.com/camel-cdr/rvv-bench
 [submodule "bootloader/LibCheckpointAlpha"]
 	path = bootloader/LibCheckpointAlpha
 	url = https://github.com/openxiangshan/LibCheckpointAlpha
-[submodule "workloads/riscv-tests/source"]
-	path = workloads/riscv-tests/source
+[submodule "workloads/am/riscv-tests/source"]
+	path = workloads/am/riscv-tests/source
 	url = https://github.com/OpenXiangShan/riscv-tests
 [submodule "nexus-am"]
 	path = nexus-am
 	url = https://github.com/OpenXiangShan/nexus-am/
-[submodule "workloads/riscv-vector-tests/riscv-vector-tests"]
-	path = workloads/riscv-vector-tests/source
+[submodule "workloads/am/riscv-vector-tests/source"]
+	path = workloads/am/riscv-vector-tests/source
 	url = https://github.com/OpenXiangShan/riscv-vector-tests
-[submodule "workloads/kvmtool/source/kvmtool"]
-	path = workloads/kvmtool/source/kvmtool
+[submodule "workloads/linux/kvmtool/source/kvmtool"]
+	path = workloads/linux/kvmtool/source/kvmtool
 	url = https://github.com/kvmtool/kvmtool
-[submodule "workloads/kvmtool/source/dtc"]
-	path = workloads/kvmtool/source/dtc
+[submodule "workloads/linux/kvmtool/source/dtc"]
+	path = workloads/linux/kvmtool/source/dtc
 	url = https://git.kernel.org/pub/scm/utils/dtc/dtc.git

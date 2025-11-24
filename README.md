@@ -12,7 +12,7 @@ Simply run `make` under the repository. The Linux kernel, the workloads and the 
 For Linux workloads:
 
 - `build/workload_name/fw_payload.bin`: The all-in-one image that can be directly loaded by NEMU.
-- `build/workload_name/rootfs.cpio.zstd`: The initramfs overlay of the workload.
+- `build/workload_name/rootfs.cpio`: The initramfs overlay of the workload.
 
 For AM workloads:
 

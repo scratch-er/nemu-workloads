@@ -6,7 +6,7 @@ SBI_BUILD_DIR="$(realpath "$2")"
 DTS_TEMPLATE="$(realpath "$3")"
 KERNEL_IMAGE="$(realpath "$4")"
 WORKLOAD_BUILD_DIR="$(realpath "$5")"
-CPIO_ARCHIVE="$WORKLOAD_BUILD_DIR/rootfs.cpio.zstd"
+CPIO_ARCHIVE="$WORKLOAD_BUILD_DIR/rootfs.cpio"
 
 MEM_BEGIN=$(( 0x80000000 ))
 DTB_OFFSET_KB=1536

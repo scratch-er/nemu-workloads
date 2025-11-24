@@ -39,21 +39,21 @@ build/$(1)/download/sentinel: $$(shell find $$(abspath workloads/$(1)) -iname 'l
 	bash scripts/download-files.sh workloads/$(1) build/$(1)/download
 
 # Build and pack workload
-build/$(1)/rootfs.cpio.zstd: $$(shell find $$(abspath workloads/$(1))) $(TOOLCHAIN_WRAPPER) build/$(1)/download/sentinel scripts/build-workload-linux.sh
+build/$(1)/rootfs.cpio: $$(shell find $$(abspath workloads/$(1))) $(TOOLCHAIN_WRAPPER) build/$(1)/download/sentinel scripts/build-workload-linux.sh
 	CROSS_COMPILE="$$(abspath $(BUILDROOT_DIR)/output/host/bin)/riscv64-linux-" \
 	SYSROOT_DIR="$$(abspath $(BUILDROOT_DIR)/output/staging)" \
 	BUILDROOT_DIR="$$(abspath $(BUILDROOT_DIR))" \
 	bash scripts/build-workload-linux.sh workloads/$(1) build/$(1)
 
 # Build all-in-one firmware
-build/$(1)/fw_payload.bin: $(GCPT_BIN) dts/xiangshan.dts.in scripts/build-sbi.sh scripts/build-firmware-linux.sh build/$(1)/rootfs.cpio.zstd $(LINUX_IMAGE) build/opensbi/build/platform/generic/firmware/fw_jump.bin
+build/$(1)/fw_payload.bin: $(GCPT_BIN) dts/xiangshan.dts.in scripts/build-sbi.sh scripts/build-firmware-linux.sh build/$(1)/rootfs.cpio $(LINUX_IMAGE) build/opensbi/build/platform/generic/firmware/fw_jump.bin
 	CROSS_COMPILE="$$(abspath $(BUILDROOT_DIR)/output/host/bin)/riscv64-linux-" \
 	DTC="$$(abspath $(BUILDROOT_DIR)/output/host/bin)/dtc" \
 	bash scripts/build-firmware-linux.sh $(GCPT_BIN) build/opensbi dts/xiangshan.dts.in $(LINUX_IMAGE) build/$(1)
 
 WORKLOAD_DIRS += build/$(1)
 WORKLOADS_LINUX += build/$(1)/fw_payload.bin
-ROOTFS += build/$(1)/rootfs.cpio.zstd
+ROOTFS += build/$(1)/rootfs.cpio
 TARFLAGS += --transform='s|^build/$(1)|workloads/$(1)|'
 endef
 

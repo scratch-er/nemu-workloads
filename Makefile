@@ -50,7 +50,7 @@ build/linux-workloads/$(1)/rootfs.cpio: $$(shell find $$(abspath workloads/linux
 build/linux-workloads/$(1)/fw_payload.bin: $(GCPT_BIN) dts/xiangshan.dts.in scripts/build-sbi.sh scripts/build-firmware-linux.sh build/linux-workloads/$(1)/rootfs.cpio $(LINUX_IMAGE) build/opensbi/build/platform/generic/firmware/fw_jump.bin
 	CROSS_COMPILE="$$(abspath $(BUILDROOT_DIR)/output/host/bin)/riscv64-linux-" \
 	DTC="$$(abspath $(BUILDROOT_DIR)/output/host/bin)/dtc" \
-	bash scripts/build-firmware-linux.sh $(GCPT_BIN) build/opensbi dts/xiangshan.dts.in $(LINUX_IMAGE) build/linux-workloads/$(1)
+	bash scripts/build-firmware-linux.sh $(GCPT_BIN) build/opensbi dts $(LINUX_IMAGE) build/linux-workloads/$(1)
 
 linux/$(1): build/linux-workloads/$(1)/fw_payload.bin
 
@@ -58,6 +58,7 @@ WORKLOAD_PHONY_TARGETS += linux/$(1)
 WORKLOAD_DIRS += build/linux-workloads/$(1)
 WORKLOADS_LINUX += build/linux-workloads/$(1)/fw_payload.bin
 ROOTFS += build/linux-workloads/$(1)/rootfs.cpio
+DT_DIRS += build/linux-workloads/$(1)/dt
 TARFLAGS += --transform='s|^build/linux-workloads/$(1)|workloads/linux/$(1)|'
 endef
 
@@ -96,7 +97,7 @@ $(eval $(call add_workload_am,hello))
 
 # Pack all workloads
 build/workloads.tar.zstd: $(WORKLOADS_LINUX) $(WORKLOADS_AM_SENTINEL)
-	tar -c $(WORKLOADS_LINUX) $(ROOTFS) $(WORKLOADS_AM) $(TARFLAGS) | zstd -f -3 -T0 -o build/workloads.tar.zstd
+	tar -c $(WORKLOADS_LINUX) $(ROOTFS) $(DT_DIRS) $(WORKLOADS_AM) $(TARFLAGS) | zstd -f -3 -T0 -o build/workloads.tar.zstd
 
 # PHONY targets
 

@@ -13,6 +13,7 @@ For Linux workloads:
 
 - `build/linux-workloads/workload_name/fw_payload.bin`: The all-in-one image that can be directly loaded by NEMU.
 - `build/linux-workloads/workload_name/rootfs.cpio`: The initramfs overlay of the workload.
+- `build/linux-workloads/workload_name/dt/`: A directory containing device tree files.
 
 For AM workloads:
 
@@ -33,7 +34,7 @@ To create a compressed tarball containing all built workloads, run `make tarball
 
 - [x] Add workload `kvmtool`.
 - [ ] Add workload `Xvisor`.
-- [ ] Support for building multiple device trees for each Linux workload.
+- [x] Support for building multiple device trees for each Linux workload.
 - [ ] Test Linux workloads with checkpoint functionalities of NEMU.
 
 ## Format of the Image
@@ -49,6 +50,12 @@ For Linux workloads, the image assumes that execution begins at `0x80000000`, an
 | 1.5 MiB | device tree                   |
 | 2.0 MiB | Linux kernel                  |
 | --      | initramfs containing workload |
+
+The "default" device tree built into the image is `dt/xiangshan.dtb`. All the device tree files for different devices are placed under the `dt` directory. To replace the device tree, the following command can be used:
+
+```shell
+dd conv=notrunc bs=1024 seek=1536 if=dt/some_device.dtb of=fw_payload.bin
+```
 
 OpenSBI is patched (see `bootloader/opensbi.patch`) to load the device tree from a fixed location. The initramfs is placed after the Linux kernel and aligned to 1 MiB.
 
@@ -105,6 +112,7 @@ Each `build.sh` script must access build information through these environment v
 - `PKG_DIR`: the ad hoc package directory. The build script can write to this directory.
 - `CROSS_COMPILE`: the cross-compilation toolchain prefix, for example, `riscv64-linux-gnu-`.
 - `SYSROOT_DIR`: the directory of the sysroot used for building the workload.  The build script should not modify anything here.
+- `BUILDROOT_DIR`: the buildroot directory. The build script should not modify anything here.
 
 ## How are AM Workloads Built
 
@@ -147,3 +155,17 @@ You can add a workload with the following steps:
 2. Add `$(eval $(call add_workload_am,workload_name))` in the Makefile.
 
 Then run `make` to build your new workload.
+
+## Adding a Device Tree
+
+To add a device tree, simply create a template file `device_name.dts.in` in the `dts` directory. It will be automatically found by the build system.
+
+Currently, the memory location of the initramfs containing the workload is passed to the kernel by device tree. So for each workload, device tree files are generated from the template on the fly, because the size of the initramfs cannot be known in advance. You should use the parameters `INITRAMFS_BEGIN` and `INITRAMFS_END` in the device tree template. 
+
+```dts
+chosen {
+    bootargs = "console=hvc0 earlycon=sbi";
+    linux,initrd-start = <0x0 INITRAMFS_BEGIN>;
+    linux,initrd-end = <0x0 INITRAMFS_END>;
+};
+```

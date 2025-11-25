@@ -24,6 +24,10 @@ You can also build a single workload with:
 - `make linux/workload_name` for a Linux workload.
 - `make am/workload_name` for an AM workload.
 
+## Workload Compatibility
+
+Not all workloads can run on all NEMU configurations. The only workload supported by `riscv64-nutshell_defconfig` is `linux/hello`, since all other workloads require hardware floating point, which is not supported by nutshell. RVV related workloads require the vector ISA extension, and hypervisor related workloads require the hypervisor ISA extension.
+
 ## Build Requirements
 
 Any modern Linux distributions should be okay. The build system of this project is using the toolchain provided by buildroot, so you do not have to set up the toolchains manually to build most workloads. Some workloads require additional toolchians not provided by buildroot. Please refer to the README file of each workload (`README.md` in the workload directory) for details.
@@ -51,7 +55,7 @@ For Linux workloads, the image assumes that execution begins at `0x80000000`, an
 | 2.0 MiB | Linux kernel                  |
 | --      | initramfs containing workload |
 
-The "default" device tree built into the image is `dt/xiangshan.dtb`. All the device tree files for different devices are placed under the `dt` directory. To replace the device tree, the following command can be used:
+Multiple device trees are built for each workload, each corresponds to a specific NEMU configuration. The device tree files are placed under the `dt` directory in the build output directory of that workload. The "default" device tree built into the image is `dt/xiangshan.dtb`. To replace the device tree, the following command can be used:
 
 ```shell
 dd conv=notrunc bs=1024 seek=1536 if=dt/some_device.dtb of=fw_payload.bin

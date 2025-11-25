@@ -13,3 +13,4 @@ These parameters are replaced with the corresponding values when building the wo
 
 - `xiangshan.dts.in`: This device tree template is for the `riscv64-xs_defconfig` NEMU configuration.
 - `yanqihu.dts.in`: This device tree template is for the `riscv64-yanqihu_defconfig` NEMU configuration.
+- `nutshell.dts.in`: This device tree template is for the `riscv64-nutshell_defconfig` NEMU configuration.

@@ -1,0 +1,85 @@
+/dts-v1/;
+
+/ {
+    #address-cells = <0x02>;
+    #size-cells = <0x02>;
+    compatible = "freechips,rocketchip-unknown-dev";
+    model = "xiangshan,xiangshan-kunminghu";
+
+    soc {
+        #address-cells = <0x02>;
+        #size-cells = <0x02>;
+        compatible = "freechips,rocketchip-unknown-soc", "simple-bus";
+        ranges;
+
+        clint@38000000 {
+            compatible = "riscv,clint0";
+            interrupts-extended = <0x01 0x03 0x01 0x07>;
+            reg = <0x00 0x38000000 0x00 0x10000>;
+            reg-names = "control";
+            clock-frequency-mhz = <0x1f4>;
+        };
+
+        serial@40600000 {
+            compatible = "xilinx,uartlite", "xlnx,xps-uartlite-1.00.a";
+            current-speed = <0x1c200>;
+            reg = <0x00 0x40600000 0x00 0x1000>;
+            reg-names = "control";
+        };
+    };
+
+    chosen {
+        bootargs = "console=hvc0 earlycon=sbi";
+        linux,initrd-start = <0x0 INITRAMFS_BEGIN>;
+        linux,initrd-end = <0x0 INITRAMFS_END>;
+    };
+
+    memory@100000000 {
+        device_type = "memory";
+        reg = <0x00 0x80000000 0x00 0x08000000>;
+        phandle = <0x02>;
+    };
+
+    aliases {
+        serial0 = "/soc/serial@40600000";
+    };
+
+    cpus {
+        #address-cells = <0x01>;
+        #size-cells = <0x00>;
+        timebase-frequency = <0xf4240>;
+
+        cpu@0 {
+            clock-frequency = <0x00>;
+            compatible = "UCAS,COOSCA1.0", "riscv";
+            d-cache-block-size = <0x40>;
+            d-cache-sets = <0x40>;
+            d-cache-size = <0x4000>;
+            d-tlb-sets = <0x01>;
+            d-tlb-size = <0x20>;
+            device_type = "cpu";
+            i-cache-block-size = <0x40>;
+            i-cache-sets = <0x40>;
+            i-cache-size = <0x4000>;
+            i-tlb-sets = <0x01>;
+            i-tlb-size = <0x20>;
+            mmu-type = "riscv,sv39";
+            next-level-cache = <0x02>;
+            reg = <0x00>;
+            riscv,isa = "rv64imafdc";
+            riscv,isa-base = "rv64i";
+            riscv,isa-extensions = "i", "m", "a", "c", "zicntr", "zicsr", "zifencei", "zihpm";
+            status = "okay";
+            timebase-frequency = <0xf4240>;
+            tlb-split;
+
+            interrupt-controller {
+                #address-cells = <0x02>;
+                #interrupt-cells = <0x01>;
+                compatible = "riscv,cpu-intc";
+                interrupt-controller;
+                phandle = <0x01>;
+            };
+        };
+    };
+};

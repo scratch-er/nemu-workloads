@@ -40,7 +40,7 @@
     };
     L11: memory@80000000 {
         device_type = "memory";
-        reg = <0x0 0x80000000 0x2 0x0000000>;
+        reg = <0x0 0x80000000 0x0 0x08000000>;
     };
     L12: reserved-memory {
         #address-cells = <2>;

@@ -12,7 +12,7 @@ env:
   # This is used as the key of the cache.
   # Change this if buildroot version is changed,
   # Or the buildroot config is changed.
-  BUILDROOT_VERSION: 2025.08.1-1
+  BUILDROOT_VERSION: 2025.08.1-2
 
 jobs:
 

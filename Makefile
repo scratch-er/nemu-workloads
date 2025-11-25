@@ -94,8 +94,16 @@ $(eval $(call add_workload_am,cputest))
 $(eval $(call add_workload_am,misc-tests))
 $(eval $(call add_workload_am,hello))
 
+# Pack all workloads
+build/workloads.tar.zstd: $(WORKLOADS_LINUX) $(WORKLOADS_AM_SENTINEL)
+	tar -c $(WORKLOADS_LINUX) $(ROOTFS) $(WORKLOADS_AM) $(TARFLAGS) | zstd -f -3 -T0 -o build/workloads.tar.zstd
+
+# PHONY targets
+
+# Prepare buildroot toolchain
 prepare-sdk: $(TOOLCHAIN_WRAPPER)
 
+# Download all source files needed by buildroot
 source: $(BUILDROOT_DIR)/Makefile
 	make -C $(BUILDROOT_DIR) BR2_EXTERNAL=$(abspath br2-external) nemu_defconfig
 	make -C $(BUILDROOT_DIR) BR2_EXTERNAL=$(abspath br2-external) source
@@ -106,15 +114,15 @@ workloads: $(WORKLOADS_LINUX) $(WORKLOADS_AM_SENTINEL)
 # Build all rootfs
 rootfs: $(ROOTFS)
 
-# Pack all workloads
-build/workloads.tar.zstd: $(WORKLOADS_LINUX) $(WORKLOADS_AM_SENTINEL)
-	tar -c $(WORKLOADS_LINUX) $(ROOTFS) $(WORKLOADS_AM) $(TARFLAGS) | zstd -f -3 -T0 -o build/workloads.tar.zstd
-
 # Pack images and rootfs
 tarball: build/workloads.tar.zstd
+
+# Remove the buildroot outputs (toolchain, stageing files and output files for building the kernel)
+clean-kernel:
+	rm -rf $(BUILDROOT_DIR)/output
 
 # Remove all built workloads
 clean-workloads:
 	rm -rf $(WORKLOAD_DIRS) build/workloads.tar.zstd build/rootfs.tar.zstd
 
-.PHONY: all $(WORKLOAD_PHONY_TARGETS) prepare-sdk source workloads rootfs tarball clean-workloads
+.PHONY: all $(WORKLOAD_PHONY_TARGETS) prepare-sdk source workloads rootfs tarball clean-kernel clean-workloads

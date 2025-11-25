@@ -94,6 +94,7 @@ $(eval $(call add_workload_am,riscv-vector-tests))
 $(eval $(call add_workload_am,cputest))
 $(eval $(call add_workload_am,misc-tests))
 $(eval $(call add_workload_am,hello))
+$(eval $(call add_workload_am,coremark))
 
 # Pack all workloads
 build/workloads.tar.zstd: $(WORKLOADS_LINUX) $(WORKLOADS_AM_SENTINEL)

@@ -30,7 +30,7 @@ $(GCPT_BIN): scripts/build-gcpt.sh $(TOOLCHAIN_WRAPPER)
 # Build OpenSBI
 SBI_BUILD_DIR := build/opensbi
 SBI_BIN := $(SBI_BUILD_DIR)/build/platform/generic/firmware/fw_jump.bin
-$(SBI_BIN): scripts/build-sbi.sh $(TOOLCHAIN_WRAPPER)
+$(SBI_BIN): scripts/build-sbi.sh bootloader/opensbi.config $(TOOLCHAIN_WRAPPER)
 	CROSS_COMPILE="$(abspath $(BUILDROOT_DIR)/output/host/bin)/riscv64-linux-" bash scripts/build-sbi.sh bootloader/opensbi build/opensbi
 
 define add_workload_linux
@@ -102,6 +102,9 @@ build/workloads.tar.zstd: $(WORKLOADS_LINUX) $(WORKLOADS_AM_SENTINEL)
 
 # PHONY targets
 
+init:
+	git submodule update --init --recursive
+
 # Prepare buildroot toolchain
 prepare-sdk: $(TOOLCHAIN_WRAPPER)
 
@@ -127,4 +130,4 @@ clean-kernel:
 clean-workloads:
 	rm -rf $(WORKLOAD_DIRS) build/workloads.tar.zstd build/rootfs.tar.zstd
 
-.PHONY: all $(WORKLOAD_PHONY_TARGETS) prepare-sdk source workloads rootfs tarball clean-kernel clean-workloads
+.PHONY: all $(WORKLOAD_PHONY_TARGETS) init prepare-sdk source workloads rootfs tarball clean-kernel clean-workloads

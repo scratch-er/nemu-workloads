@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
 set -e
-set -x
 
 STARTUP_FILE="$(realpath "$1")"
 SBI_BUILD_DIR="$(realpath "$2")"

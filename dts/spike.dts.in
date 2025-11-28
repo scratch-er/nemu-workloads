@@ -32,23 +32,6 @@
         compatible = "riscv,cpu-intc";
       };
     };
-    CPU1: cpu@1 {
-      device_type = "cpu";
-      reg = <1>;
-      status = "okay";
-      compatible = "riscv";
-      riscv,isa = "rv64imafdc_zicntr_zihpm";
-      mmu-type = "riscv,sv57";
-      riscv,pmpregions = <16>;
-      riscv,pmpgranularity = <4>;
-      clock-frequency = <1000000000>;
-      CPU1_intc: interrupt-controller {
-        #address-cells = <2>;
-        #interrupt-cells = <1>;
-        interrupt-controller;
-        compatible = "riscv,cpu-intc";
-      };
-    };
   };
   memory@80000000 {
     device_type = "memory";
@@ -61,13 +44,13 @@
     ranges;
     clint@2000000 {
       compatible = "riscv,clint0";
-      interrupts-extended = <&CPU0_intc 3 &CPU0_intc 7 &CPU1_intc 3 &CPU1_intc 7 >;
+      interrupts-extended = <&CPU0_intc 3 &CPU0_intc 7 >;
       reg = <0x0 0x2000000 0x0 0x10000>;
     };
     PLIC: plic@c000000 {
       compatible = "riscv,plic0";
       #address-cells = <2>;
-      interrupts-extended = <&CPU0_intc 11 &CPU0_intc 9 &CPU1_intc 11 &CPU1_intc 9 >;
+      interrupts-extended = <&CPU0_intc 11 &CPU0_intc 9 >;
       reg = <0x0 0xc000000 0x0 0x1000000>;
       riscv,ndev = <0x1f>;
       riscv,max-priority = <0xf>;

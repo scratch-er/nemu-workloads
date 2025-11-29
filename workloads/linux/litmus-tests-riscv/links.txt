@@ -1,0 +1,1 @@
+litmus-test-riscv-master.zip https://github.com/litmus-tests/litmus-tests-riscv/archive/refs/heads/master.zip f71fbb1762f3189a8ea5756985ca815e6eb6d44f81d988da797bc41e72f173a4

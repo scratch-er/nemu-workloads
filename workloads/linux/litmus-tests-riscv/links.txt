@@ -1,1 +1,1 @@
-litmus-test-riscv-master.zip https://github.com/litmus-tests/litmus-tests-riscv/archive/refs/heads/master.zip f71fbb1762f3189a8ea5756985ca815e6eb6d44f81d988da797bc41e72f173a4
+litmus-tests-riscv-2C.tar.gz https://github.com/OpenXiangShan/litmus-tests-riscv/releases/download/litmus-tests-20251129/litmus-tests-riscv-2C.tar.gz 425b614b30d90a70f12d423bae1e3cdb1894c878b8a34e5a997ff9218bb8aabc

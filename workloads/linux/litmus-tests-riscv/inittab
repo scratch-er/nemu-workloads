@@ -1,1 +1,1 @@
-::once:sh -c "/litmus-tests-riscv/run-own.sh; nemu-trap -1"
+::once:sh -c "/litmus-tests-riscv/run-simple.sh; nemu-trap -1"

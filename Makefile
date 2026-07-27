@@ -11,7 +11,7 @@ LINUX_FIRMWARE_BUILD_VARS_HASH := $(shell printf '%s\n' \
 	'harts=$(if $(filter 1,$(MULTIHART)),$(HARTS),1)' \
 	'default_dtb=$(if $(DEFAULT_DTB),$(DEFAULT_DTB),xiangshan)' | sha256sum | cut -d ' ' -f 1)
 
-MULTIHART_SUPPORTED_HARTS := $(shell seq 2 128)
+MULTIHART_SUPPORTED_HARTS = $(shell seq 2 128)
 ifeq ($(filter 1,$(MULTIHART)),1)
 ifeq ($(filter $(HARTS),$(MULTIHART_SUPPORTED_HARTS)),)
 $(error HARTS must be an integer in the range 2..128 when MULTIHART=1)

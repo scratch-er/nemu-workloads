@@ -130,10 +130,10 @@ def sanitize_nemu_uart_comments(text):
 
 
 def add_checkpoint_reserved_memory(text):
-    if "checkpoint@80300000" in text:
+    start, end = extract_node(text, "\treserved-memory {")
+    if re.search(r"@80300000\s*\{", text[start:end]):
         return text
 
-    start, end = extract_node(text, "\treserved-memory {")
     close = text.rfind("\n\t};", start, end)
     if close == -1:
         raise RuntimeError("reserved-memory node does not have the expected closing brace")

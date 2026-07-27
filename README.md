@@ -85,9 +85,8 @@ A multi-hart image uses the fixed QEMU checkpoint layout:
 | `0x80300000–0x885fffff` | 131 MiB | Checkpoint state window (`no-map`) |
 | `0x88600000+` | -- | Linux kernel, followed by the MiB-aligned initramfs |
 
-For OpenSBI, this is `FW_TEXT_START=0x80100000` plus
-`FW_PAYLOAD_OFFSET=0x08500000`, giving a Linux entry address of
-`0x88600000`.
+For OpenSBI, the multi-hart image uses `FW_TEXT_START=0x80100000`,
+`FW_JUMP_ADDR=0x88600000`, and `FW_JUMP_FDT_ADDR=0x80200000`.
 
 The canonical single-core and multi-hart DTS memory maps, including DRAM
 profiles and DTS selection examples, are in [dts/README.md](dts/README.md#single-core-physical-memory-map).

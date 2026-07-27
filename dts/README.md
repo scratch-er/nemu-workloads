@@ -64,9 +64,9 @@ window includes the slots plus alignment headroom before Linux.
 The kernel address is derived from the OpenSBI placement:
 
 ```text
-FW_TEXT_START     = 0x80100000
-FW_PAYLOAD_OFFSET = 0x08500000
-Linux entry       = 0x88600000
+FW_TEXT_START   = 0x80100000
+FW_JUMP_ADDR    = 0x88600000
+FW_JUMP_FDT_ADDR = 0x80200000
 ```
 
 The unified addresses do not force a single DRAM size. The repository's

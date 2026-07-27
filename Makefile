@@ -44,6 +44,9 @@ $(LINUX_IMAGE): $(TOOLCHAIN_WRAPPER) br2-external/configs/nemu_defconfig br2-ext
 
 # Build GCPT. Single-core firmware keeps LibCheckpointAlpha; LibCheckpoint is
 # used for the QEMU multi-hart checkpoint format.
+SBI_BUILD_DIR := $(if $(filter 1,$(MULTIHART)),build/opensbi-multihart,build/opensbi)
+SBI_BIN := $(SBI_BUILD_DIR)/build/platform/generic/firmware/fw_jump.bin
+
 GCPT_IMPLEMENTATION := $(if $(filter 1,$(MULTIHART)),libcheckpoint,alpha)
 GCPT_SOURCE_DIR := $(if $(filter 1,$(MULTIHART)),bootloader/LibCheckpoint,bootloader/LibCheckpointAlpha)
 GCPT_BUILD_DIR := $(if $(filter 1,$(MULTIHART)),build/LibCheckpoint,build/LibCheckpointAlpha)
@@ -57,17 +60,16 @@ $(GCPT_CONFIG_STAMP):
 	mkdir -p "$(@D)"
 	rm -f $(if $(filter 1,$(MULTIHART)),build/LibCheckpoint-config/mode.*,build/LibCheckpointAlpha-config/dtb.*)
 	touch "$@"
-$(GCPT_BIN): scripts/build-gcpt.sh $(TOOLCHAIN_WRAPPER) $(GCPT_SOURCES) $(GCPT_DTS_SOURCES) $(GCPT_CONFIG_STAMP)
+$(GCPT_BIN): scripts/build-gcpt.sh $(TOOLCHAIN_WRAPPER) $(GCPT_SOURCES) $(GCPT_DTS_SOURCES) $(GCPT_CONFIG_STAMP) $(if $(filter 1,$(MULTIHART)),$(SBI_BIN),)
 	CROSS_COMPILE="$(abspath $(BUILDROOT_DIR)/output/host/bin)/riscv64-linux-" \
 	GCPT_IMPLEMENTATION="$(GCPT_IMPLEMENTATION)" \
 	GCPT_CONFIGURE_MODE="$(GCPT_CONFIGURE_MODE)" \
+	GCPT_PAYLOAD_PATH="$(if $(filter 1,$(MULTIHART)),$(abspath $(SBI_BIN)),)" \
 	DEFAULT_DTB="$(GCPT_DEFAULT_DTB)" \
 	DTS_TEMPLATE_DIR="$(abspath dts)" \
 	bash scripts/build-gcpt.sh $(GCPT_SOURCE_DIR) $(GCPT_BUILD_DIR)
 
 # Build OpenSBI
-SBI_BUILD_DIR := $(if $(filter 1,$(MULTIHART)),build/opensbi-multihart,build/opensbi)
-SBI_BIN := $(SBI_BUILD_DIR)/build/platform/generic/firmware/fw_jump.bin
 $(SBI_BIN): scripts/build-sbi.sh bootloader/opensbi.config $(TOOLCHAIN_WRAPPER)
 	CROSS_COMPILE="$(abspath $(BUILDROOT_DIR)/output/host/bin)/riscv64-linux-" \
 	MULTIHART="$(MULTIHART)" \

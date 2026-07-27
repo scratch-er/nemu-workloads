@@ -182,11 +182,24 @@ check_image_component_size() {
 check_gcpt_image_size() {
     local file="$1"
     local max_bytes="$2"
+    local payload_file="${3:-}"
     local actual_bytes
     local fallback_bytes
+    local payload_bytes
     actual_bytes="$(stat -c%s "$file")"
     if [ "$actual_bytes" -le "$max_bytes" ]; then
         return
+    fi
+
+    # Multi-hart LibCheckpoint may carry the same fw_jump image that is
+    # placed externally at the 1 MiB boundary in the final image. Keep the
+    # embedded copy in gcpt.bin, while still packing the original layout.
+    if [ -n "$payload_file" ] && [ -f "$payload_file" ]; then
+        payload_bytes="$(stat -c%s "$payload_file")"
+        if [ "$actual_bytes" -eq $(( max_bytes + payload_bytes )) ] && \
+            tail -c +$(( max_bytes + 1 )) "$file" | cmp -s - "$payload_file"; then
+            return
+        fi
     fi
 
     # Both checkpoint implementations link a no-payload fallback at exactly
@@ -272,7 +285,11 @@ if [ "${MULTIHART:-0}" = 1 ]; then
 fi
 check_dtb_memory_layout "$DEFAULT_DTS_FILE" "$DTB_MIN_MEMORY_BYTES"
 SBI_IMAGE="$SBI_BUILD_DIR/build/platform/generic/firmware/fw_jump.bin"
-check_gcpt_image_size "$STARTUP_FILE" $(( SBI_OFFSET_KB * KILOBYTE ))
+if [ "${MULTIHART:-0}" = 1 ]; then
+    check_gcpt_image_size "$STARTUP_FILE" $(( SBI_OFFSET_KB * KILOBYTE )) "$SBI_IMAGE"
+else
+    check_gcpt_image_size "$STARTUP_FILE" $(( SBI_OFFSET_KB * KILOBYTE ))
+fi
 check_image_component_size OpenSBI "$SBI_IMAGE" $(( (DTB_OFFSET_KB - SBI_OFFSET_KB) * KILOBYTE ))
 check_image_component_size DTB "$DEFAULT_DTB_FILE" $(( DTB_MAX_SIZE_KB * KILOBYTE ))
 dd if="$STARTUP_FILE" of="$WORKLOAD_BUILD_DIR/fw_payload.bin" bs="$KILOBYTE" count="$SBI_OFFSET_KB" status=none

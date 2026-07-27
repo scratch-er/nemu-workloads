@@ -24,6 +24,38 @@ Full case names are also accepted:
 make linux/spec2017 BENCH=mcf_rate_refrate SPEC2017_ISO=/path/to/cpu2017.iso -jN
 ```
 
+## Build a multi-hart workload
+
+Add `MULTIHART=1`, set `HARTS` to the checkpoint hart count, and select the
+matching multi-hart DTS template explicitly:
+
+```sh
+make linux/spec2017 BENCH=mcf MODE=rate INPUT=ref \
+  SPEC2017_ISO=/path/to/cpu2017.iso \
+  MULTIHART=1 HARTS=2 \
+  DEFAULT_DTB=xiangshan-fpga-noAIA-2hart-mem8g -jN
+```
+
+The same options apply to split image exports:
+
+```sh
+make spec2017-images BENCH=mcf MODE=rate INPUT=ref \
+  SPEC2017_ISO=/path/to/cpu2017.iso \
+  MULTIHART=1 HARTS=2 \
+  DEFAULT_DTB=xiangshan-fpga-noAIA-2hart-mem8g -jN
+```
+
+The package step creates `/spec0` through `/spec<N-1>` and starts one copy on
+each hart through `/spec_common/launch_multihart.sh`. Each hart uses its own
+`SPEC_ROOT`; the task wrappers emit profiling traps 256, 257, and 258, while
+the launcher reports the aggregate exit status.
+
+`DEFAULT_DTB` is required for multi-hart builds and must be the complete DTS
+basename without `.dts.in`. Its CPU count must match `HARTS`. SPEC2017 also
+retains its memory-size checks: rate cases require at least 8 GiB and speed
+cases require at least 24 GiB, so select or generate a matching multi-hart
+template with sufficient memory.
+
 The ISO is extracted and installed through a temporary local staging directory,
 then copied into the writable workspace
 `build/linux-workloads/spec2017/spec-src`. Build output stays under:
@@ -100,7 +132,8 @@ make spec2017-images SPEC2017_ISO=/path/to/cpu2017.iso SPEC2017_IMAGE_MODE=all -
 
 `SPEC2017_IMAGE_MODE=all` exports both rate and speed images.
 
-The generated run script emits NEMU profiling traps by default:
+For single-hart images, the generated run script emits NEMU profiling traps by
+default:
 
 ```text
 echo "CMD: ..."
@@ -116,7 +149,9 @@ Disable the begin profiling traps with:
 PROFILING=0 make spec2017-images SPEC2017_ISO=/path/to/cpu2017.iso -jN
 ```
 
-The final `nemu-trap <status>` is always emitted.
+The final `nemu-trap <status>` is always emitted for single-hart images.
+Multi-hart images use the per-hart task wrappers and aggregate launcher
+described above instead.
 
 The repository provides static `xiangshan-fpga-noAIA-novec` DTS templates for the
 SPEC2017 memory profiles used by default. The embedded DTB is selected per

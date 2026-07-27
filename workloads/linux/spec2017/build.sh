@@ -10,6 +10,7 @@ set -euo pipefail
 : "${SPEC2017_ELF_ONLY:=false}"
 : "${SPEC2017_ALL_RUNS:=false}"
 : "${SPEC2017_PROFILING:=1}"
+: "${SPEC2017_MULTIHART:=0}"
 : "${SPEC2017_LOG_DIR:=$WORKLOAD_BUILD_DIR/logs}"
 : "${PKG_DIR:=$WORKLOAD_BUILD_DIR/package}"
 
@@ -43,4 +44,5 @@ python3 "$WORKLOAD_DIR/spec2017-package.py" \
   --tune "$SPEC2017_TUNE" \
   --jobs "$SPEC2017_JOBS" \
   --profiling "$SPEC2017_PROFILING" \
+  --multihart "$SPEC2017_MULTIHART" \
   "${python_args[@]}"

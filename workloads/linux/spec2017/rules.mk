@@ -19,8 +19,15 @@ SPEC2017_PREPARE_SCRIPT := $(SPEC2017_WORKLOAD_DIR)/prepare-spec-workspace.sh
 SPEC2017_CROSS_COMPILE ?= riscv64-unknown-linux-gnu-
 SPEC2017_COMPILER_ROOT ?=
 SPEC2017_GNU_TOOLCHAIN_ROOT ?=
+SPEC2017_MULTIHART ?= $(MULTIHART)
+SPEC2017_HARTS ?= $(if $(HARTS),$(HARTS),2)
 SPEC2017_EXPLICIT_DEFAULT_DTB := $(if $(DEFAULT_DTB),1,$(if $(filter undefined,$(origin SPEC2017_DEFAULT_DTB)),,1))
-SPEC2017_DEFAULT_DTB ?= $(if $(DEFAULT_DTB),$(DEFAULT_DTB),xiangshan-fpga-noAIA-novec)
+SPEC2017_DEFAULT_DTB ?= $(if $(DEFAULT_DTB),$(DEFAULT_DTB),$(if $(filter 1,$(SPEC2017_MULTIHART)),,xiangshan-fpga-noAIA-novec))
+ifeq ($(filter 1,$(SPEC2017_MULTIHART)),1)
+ifeq ($(strip $(SPEC2017_DEFAULT_DTB)),)
+$(error DEFAULT_DTB or SPEC2017_DEFAULT_DTB must be specified when MULTIHART=1; use the complete DTS basename without .dts.in)
+endif
+endif
 SPEC2017_RATE_DTB_MEMORY ?= 8g
 SPEC2017_SPEED_DTB_MEMORY ?= 24g
 SPEC2017_DTB_MEMORY ?=
@@ -38,9 +45,9 @@ SPEC2017_PROGRESS_N ?= 1
 SPEC2017_PROGRESS_PREFIX := [spec2017 $(SPEC2017_PROGRESS_K)/$(SPEC2017_PROGRESS_N)]
 SPEC2017_BUILDROOT_DIR ?= $(if $(BUILDROOT_DIR),$(BUILDROOT_DIR),$(SPEC2017_REPO_ROOT)/build/buildroot)
 SPEC2017_LINUX_IMAGE ?= $(if $(LINUX_IMAGE),$(LINUX_IMAGE),$(SPEC2017_BUILDROOT_DIR)/output/images/Image)
-SPEC2017_GCPT_ELF ?= $(if $(GCPT_ELF),$(GCPT_ELF),$(SPEC2017_REPO_ROOT)/build/LibCheckpointAlpha/build/gcpt)
-SPEC2017_GCPT_BIN ?= $(if $(GCPT_BIN),$(GCPT_BIN),$(SPEC2017_REPO_ROOT)/build/LibCheckpointAlpha/build/gcpt.bin)
-SPEC2017_SBI_BUILD_DIR ?= $(if $(SBI_BUILD_DIR),$(SBI_BUILD_DIR),$(SPEC2017_REPO_ROOT)/build/opensbi)
+SPEC2017_GCPT_ELF ?= $(if $(GCPT_ELF),$(GCPT_ELF),$(SPEC2017_REPO_ROOT)/build/$(if $(filter 1,$(SPEC2017_MULTIHART)),LibCheckpoint,LibCheckpointAlpha)/build/gcpt)
+SPEC2017_GCPT_BIN ?= $(if $(GCPT_BIN),$(GCPT_BIN),$(SPEC2017_REPO_ROOT)/build/$(if $(filter 1,$(SPEC2017_MULTIHART)),LibCheckpoint,LibCheckpointAlpha)/build/gcpt.bin)
+SPEC2017_SBI_BUILD_DIR ?= $(if $(SBI_BUILD_DIR),$(SBI_BUILD_DIR),$(SPEC2017_REPO_ROOT)/build/$(if $(filter 1,$(SPEC2017_MULTIHART)),opensbi-multihart,opensbi))
 SPEC2017_SBI_BIN ?= $(if $(SBI_BIN),$(SBI_BIN),$(SPEC2017_SBI_BUILD_DIR)/build/platform/generic/firmware/fw_jump.bin)
 SPEC2017_BUILDROOT_CROSS_COMPILE ?= $(SPEC2017_BUILDROOT_DIR)/output/host/bin/riscv64-linux-
 SPEC2017_DTC ?= $(SPEC2017_BUILDROOT_DIR)/output/host/bin/dtc
@@ -52,7 +59,7 @@ spec2017_case_dtb_min_memory_bytes = $(if $(findstring _speed_,$(1)),$(SPEC2017_
 spec2017_case_cfg = $(if $(SPEC2017_EXPLICIT_CFG),$(SPEC2017_CFG),$(if $(findstring _speed_,$(1)),$(SPEC2017_SPEED_CFG),$(SPEC2017_RATE_CFG)))
 spec2017_case_cfg_hash = $(shell if [ -f "$(abspath $(call spec2017_case_cfg,$(1)))" ]; then sha256sum "$(abspath $(call spec2017_case_cfg,$(1)))" | cut -d ' ' -f 1; else printf 'missing'; fi)
 SPEC2017_PYTHON := PYTHONDONTWRITEBYTECODE=1 python3
-SPEC2017_BUILD_VARS_HASH := $(shell printf '%s\n' '$(SPEC2017_PROFILING)' '$(SPEC2017_TUNE)' '$(SPEC2017_CROSS_COMPILE)' '$(SPEC2017_COMPILER_ROOT)' '$(SPEC2017_GNU_TOOLCHAIN_ROOT)' | sha256sum | cut -d ' ' -f 1)
+SPEC2017_BUILD_VARS_HASH := $(shell printf '%s\n' '$(SPEC2017_PROFILING)' '$(SPEC2017_TUNE)' '$(SPEC2017_CROSS_COMPILE)' '$(SPEC2017_COMPILER_ROOT)' '$(SPEC2017_GNU_TOOLCHAIN_ROOT)' 'multihart=$(SPEC2017_MULTIHART)' 'harts=$(SPEC2017_HARTS)' | sha256sum | cut -d ' ' -f 1)
 SPEC2017_CASE := $(shell $(SPEC2017_PYTHON) $(SPEC2017_HELPER) --resolve-case --bench '$(BENCH)' --input-set '$(SPEC2017_INPUT)' --mode '$(SPEC2017_MODE)' 2>/dev/null)
 SPEC2017_ALL_CASES := $(shell $(SPEC2017_PYTHON) $(SPEC2017_HELPER) --list-cases --input-set all --mode all 2>/dev/null)
 SPEC2017_SELECTED_CASES := $(shell $(SPEC2017_PYTHON) $(SPEC2017_HELPER) --list-cases --input-set $(SPEC2017_INPUT) --mode $(SPEC2017_MODE) 2>/dev/null)
@@ -125,7 +132,8 @@ $(SPEC2017_BUILD_DIR)/$(1)/cfg.$(call spec2017_case_cfg_hash,$(1)).stamp: | spec
 
 $(SPEC2017_BUILD_DIR)/$(1)/build-vars.$(SPEC2017_BUILD_VARS_HASH).stamp:
 	@mkdir -p "$$(@D)"
-	@printf '%s\n' "profiling=$(SPEC2017_PROFILING)" > "$$@"
+	@rm -f "$$(@D)"/build-vars.*.stamp
+	@printf '%s\n' "profiling=$(SPEC2017_PROFILING)" "multihart=$(SPEC2017_MULTIHART)" "harts=$(SPEC2017_HARTS)" > "$$@"
 
 $(SPEC2017_BUILD_DIR)/$(1)/elf/$(1).elf: $(SPEC2017_PREPARE_STAMP) $(SPEC2017_BUILD_DIR)/$(1)/cfg.$(call spec2017_case_cfg_hash,$(1)).stamp $$(SPEC2017_HELPER) $$(SPEC2017_WORKLOAD_DIR)/build.sh
 	@mkdir -p "$$(dir $$@)"
@@ -146,7 +154,7 @@ $(SPEC2017_BUILD_DIR)/$(1)/elf/$(1).elf: $(SPEC2017_PREPARE_STAMP) $(SPEC2017_BU
 	SPEC2017_PROFILING="$$(SPEC2017_PROFILING)" \
 	bash "$$(abspath $$(SPEC2017_WORKLOAD_DIR))/build.sh"
 
-$(SPEC2017_BUILD_DIR)/$(1)/rootfs.cpio: $(SPEC2017_PREPARE_STAMP) $(SPEC2017_BUILD_DIR)/$(1)/cfg.$(call spec2017_case_cfg_hash,$(1)).stamp $$(SPEC2017_HELPER) $$(SPEC2017_WORKLOAD_DIR)/build.sh $(SPEC2017_BUILD_DIR)/$(1)/download/sentinel $(SPEC2017_BUILD_DIR)/$(1)/build-vars.$(SPEC2017_BUILD_VARS_HASH).stamp $$(SPEC2017_SCRIPTS_DIR)/build-workload-linux.sh
+$(SPEC2017_BUILD_DIR)/$(1)/rootfs.cpio: $(SPEC2017_PREPARE_STAMP) $(SPEC2017_BUILD_DIR)/$(1)/cfg.$(call spec2017_case_cfg_hash,$(1)).stamp $$(SPEC2017_HELPER) $$(SPEC2017_WORKLOAD_DIR)/build.sh $(SPEC2017_BUILD_DIR)/$(1)/download/sentinel $(SPEC2017_BUILD_DIR)/$(1)/build-vars.$(SPEC2017_BUILD_VARS_HASH).stamp $$(SPEC2017_SCRIPTS_DIR)/build-workload-linux.sh $$(SPEC2017_SCRIPTS_DIR)/package-multihart-rootfs.py
 	@CROSS_COMPILE="$$(SPEC2017_CROSS_COMPILE)" \
 	SPEC2017_PROGRESS_K="$$(SPEC2017_PROGRESS_K)" \
 	SPEC2017_PROGRESS_N="$$(SPEC2017_PROGRESS_N)" \
@@ -158,6 +166,10 @@ $(SPEC2017_BUILD_DIR)/$(1)/rootfs.cpio: $(SPEC2017_PREPARE_STAMP) $(SPEC2017_BUI
 	SPEC2017_TUNE="$$(SPEC2017_TUNE)" \
 	SPEC2017_JOBS="$$(SPEC2017_JOBS)" \
 	SPEC2017_PROFILING="$$(SPEC2017_PROFILING)" \
+	SPEC2017_MULTIHART="$$(SPEC2017_MULTIHART)" \
+	MULTIHART="$$(SPEC2017_MULTIHART)" \
+	HARTS="$$(SPEC2017_HARTS)" \
+	MULTIHART_PAYLOAD_DIR=spec \
 	bash "$$(SPEC2017_SCRIPTS_DIR)/build-workload-linux.sh" "$$(SPEC2017_WORKLOAD_DIR)" "$(SPEC2017_BUILD_DIR)/$(1)"
 
 $(SPEC2017_BUILD_DIR)/$(1)/firmware/dtb-$(call spec2017_case_dtb_tag,$(1)).stamp: spec2017-force
@@ -176,6 +188,8 @@ $(SPEC2017_BUILD_DIR)/$(1)/fw_payload.bin: $$(SPEC2017_DTS_SOURCES) $$(SPEC2017_
 	DEFAULT_DTB="$$(SPEC2017_DEFAULT_DTB)" \
 	DTB_MEMORY_PROFILE="$(call spec2017_case_dtb_profile,$(1))" \
 	DTB_MIN_MEMORY_BYTES="$(call spec2017_case_dtb_min_memory_bytes,$(1))" \
+	MULTIHART="$$(SPEC2017_MULTIHART)" \
+	HARTS="$$(SPEC2017_HARTS)" \
 	SPEC2017_PROGRESS_K="$$(SPEC2017_PROGRESS_K)" \
 	SPEC2017_PROGRESS_N="$$(SPEC2017_PROGRESS_N)" \
 	bash "$$(SPEC2017_SCRIPTS_DIR)/build-firmware-linux.sh" "$$(SPEC2017_GCPT_BIN)" "$$(SPEC2017_SBI_BUILD_DIR)" "$$(SPEC2017_DTS_DIR)" "$$(SPEC2017_LINUX_IMAGE)" "$(SPEC2017_BUILD_DIR)/$(1)"
@@ -184,7 +198,7 @@ linux/$(1): $(SPEC2017_BUILD_DIR)/$(1)/fw_payload.bin
 
 WORKLOAD_PHONY_TARGETS += linux/$(1)
 
-$(SPEC2017_IMAGE_DIR)/stamps/$(1).images.stamp: $(SPEC2017_PREPARE_STAMP) $(SPEC2017_BUILD_DIR)/$(1)/cfg.$(call spec2017_case_cfg_hash,$(1)).stamp $$(SPEC2017_HELPER) $$(SPEC2017_WORKLOAD_DIR)/build.sh $(SPEC2017_BUILD_DIR)/$(1)/download/sentinel $(SPEC2017_BUILD_DIR)/$(1)/build-vars.$(SPEC2017_BUILD_VARS_HASH).stamp $$(SPEC2017_DTS_SOURCES) $$(SPEC2017_GCPT_BIN) $$(SPEC2017_GCPT_ELF) $$(SPEC2017_SCRIPTS_DIR)/build-firmware-linux.sh $$(SPEC2017_LINUX_IMAGE) $$(SPEC2017_SBI_BIN) | spec2017-check-spec-config
+$(SPEC2017_IMAGE_DIR)/stamps/$(1).images.stamp: $(SPEC2017_PREPARE_STAMP) $(SPEC2017_BUILD_DIR)/$(1)/cfg.$(call spec2017_case_cfg_hash,$(1)).stamp $$(SPEC2017_HELPER) $$(SPEC2017_WORKLOAD_DIR)/build.sh $(SPEC2017_BUILD_DIR)/$(1)/download/sentinel $(SPEC2017_BUILD_DIR)/$(1)/build-vars.$(SPEC2017_BUILD_VARS_HASH).stamp $$(SPEC2017_DTS_SOURCES) $$(SPEC2017_GCPT_BIN) $$(SPEC2017_GCPT_ELF) $$(SPEC2017_SCRIPTS_DIR)/build-firmware-linux.sh $$(SPEC2017_SCRIPTS_DIR)/package-multihart-rootfs.py $$(SPEC2017_LINUX_IMAGE) $$(SPEC2017_SBI_BIN) | spec2017-check-spec-config
 	@printf '$(SPEC2017_PROGRESS_PREFIX) Packaging split run images for $(1)\n'
 	@WORKLOAD_DIR="$$(abspath $$(SPEC2017_WORKLOAD_DIR))" \
 	WORKLOAD_BUILD_DIR="$$(abspath $(SPEC2017_BUILD_DIR)/$(1))" \
@@ -201,6 +215,7 @@ $(SPEC2017_IMAGE_DIR)/stamps/$(1).images.stamp: $(SPEC2017_PREPARE_STAMP) $(SPEC
 	SPEC2017_JOBS="$$(SPEC2017_JOBS)" \
 	SPEC2017_ALL_RUNS=1 \
 	SPEC2017_PROFILING="$$(SPEC2017_PROFILING)" \
+	SPEC2017_MULTIHART="$$(SPEC2017_MULTIHART)" \
 	bash "$$(abspath $$(SPEC2017_WORKLOAD_DIR))/build.sh"
 	@printf '$(SPEC2017_PROGRESS_PREFIX) Exporting $(1) split artifacts to $(SPEC2017_IMAGE_DIR)\n'
 	@mkdir -p "$(SPEC2017_IMAGE_DIR)/bin" "$(SPEC2017_IMAGE_DIR)/kernel" "$(SPEC2017_IMAGE_DIR)/elf" "$(SPEC2017_IMAGE_DIR)/cmd" "$(SPEC2017_IMAGE_DIR)/rootfs" "$(SPEC2017_IMAGE_DIR)/cfg" "$(SPEC2017_IMAGE_DIR)/gcpt" "$(SPEC2017_IMAGE_DIR)/logs/build_elf" "$(SPEC2017_IMAGE_DIR)/stamps"
@@ -217,16 +232,25 @@ $(SPEC2017_IMAGE_DIR)/stamps/$(1).images.stamp: $(SPEC2017_PREPARE_STAMP) $(SPEC
 	@$(SPEC2017_PYTHON) "$(SPEC2017_HELPER)" --list-packaged-variants --out-dir "$(SPEC2017_BUILD_DIR)/$(1)" | while IFS="	" read -r variant build_dir; do \
 		printf '$(SPEC2017_PROGRESS_PREFIX) Assembling firmware for %s\n' "$$$$variant"; \
 		rm -f "$$$$build_dir/rootfs.cpio"; \
+		if [ "$$(SPEC2017_MULTIHART)" = 1 ]; then \
+			$$(SPEC2017_PYTHON) "$$(SPEC2017_SCRIPTS_DIR)/package-multihart-rootfs.py" --pkg-dir "$$$$build_dir/package" --harts "$$(SPEC2017_HARTS)" --workload-name spec; \
+		fi; \
 		(cd "$$$$build_dir/package" && find . | fakeroot cpio -o -H newc > "$$$$build_dir/rootfs.cpio" 2>/dev/null); \
 		CROSS_COMPILE="$$(SPEC2017_BUILDROOT_CROSS_COMPILE)" \
 		DTC="$$(SPEC2017_DTC)" \
 		DEFAULT_DTB="$$(SPEC2017_DEFAULT_DTB)" \
 		DTB_MEMORY_PROFILE="$(call spec2017_case_dtb_profile,$(1))" \
 		DTB_MIN_MEMORY_BYTES="$(call spec2017_case_dtb_min_memory_bytes,$(1))" \
+		MULTIHART="$$(SPEC2017_MULTIHART)" \
+		HARTS="$$(SPEC2017_HARTS)" \
 		SPEC2017_PROGRESS_K="$$(SPEC2017_PROGRESS_K)" \
 		SPEC2017_PROGRESS_N="$$(SPEC2017_PROGRESS_N)" \
 		bash "$$(SPEC2017_SCRIPTS_DIR)/build-firmware-linux.sh" "$$(SPEC2017_GCPT_BIN)" "$$(SPEC2017_SBI_BUILD_DIR)" "$$(SPEC2017_DTS_DIR)" "$$(SPEC2017_LINUX_IMAGE)" "$$$$build_dir"; \
-		cp "$$$$build_dir/package/spec/run.sh" "$(SPEC2017_IMAGE_DIR)/cmd/$$$$variant.run.sh"; \
+		if [ -f "$$$$build_dir/package/spec/run.sh" ]; then \
+			cp "$$$$build_dir/package/spec/run.sh" "$(SPEC2017_IMAGE_DIR)/cmd/$$$$variant.run.sh"; \
+		else \
+			cp "$$$$build_dir/package/spec_common/launch_multihart.sh" "$(SPEC2017_IMAGE_DIR)/cmd/$$$$variant.run.sh"; \
+		fi; \
 		cp "$$(SPEC2017_LINUX_IMAGE)" "$(SPEC2017_IMAGE_DIR)/kernel/$$$$variant.Image"; \
 		cp "$$$$build_dir/rootfs.cpio" "$(SPEC2017_IMAGE_DIR)/rootfs/$$$$variant.rootfs.cpio"; \
 		cp "$$$$build_dir/fw_payload.bin" "$(SPEC2017_IMAGE_DIR)/bin/$$$$variant.fw_payload.bin"; \

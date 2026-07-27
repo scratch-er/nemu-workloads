@@ -849,7 +849,7 @@ def shell_from_specinvoke(spec_dir, run_dir, log_dir):
     for line in output:
         line = line.replace(run_dir_ref, "./")
         line = line.replace(str(run_dir) + "/", "./")
-        line = line.replace(str(run_dir), "/spec")
+        line = line.replace(str(run_dir), "${SPEC_ROOT:-/spec}")
         commands.append(line)
     if not commands:
         raise RuntimeError(f"specinvoke produced no runnable shell commands from {cmd_file}")
@@ -911,7 +911,7 @@ def write_variants_metadata(out_dir, variants):
     write_json(out_dir / "variants.json", serializable)
 
 
-def write_runtime_files(pkg_dir, case_name_value, run_commands, profiling):
+def write_runtime_files(pkg_dir, case_name_value, run_commands, profiling, multihart="0"):
     spec_root = pkg_dir / "spec"
     run_sh = spec_root / "run.sh"
     script_lines = [
@@ -920,7 +920,9 @@ def write_runtime_files(pkg_dir, case_name_value, run_commands, profiling):
         "mkdir -p /proc /sys /tmp",
         "mount -t proc proc /proc 2>/dev/null || true",
         "mount -t sysfs sysfs /sys 2>/dev/null || true",
-        "cd /spec",
+        'SPEC_ROOT="${SPEC_ROOT:-/spec}"',
+        "export SPEC_ROOT",
+        'cd "$SPEC_ROOT"',
         "export LC_ALL=C",
         "export OMP_NUM_THREADS=1",
         "export OMP_THREAD_LIMIT=1",
@@ -936,7 +938,7 @@ def write_runtime_files(pkg_dir, case_name_value, run_commands, profiling):
             f"  spec_cmd={shlex.quote(command)}",
             "  echo \"CMD: $spec_cmd\"",
         ]
-        if profiling == "1":
+        if profiling == "1" and multihart != "1":
             command_lines.extend(["  nemu-trap 256", "  nemu-trap 257"])
         command_lines.extend(
             [
@@ -944,7 +946,8 @@ def write_runtime_files(pkg_dir, case_name_value, run_commands, profiling):
                 "  status=$?",
             ]
         )
-        command_lines.append("  nemu-trap \"$status\"")
+        if multihart != "1":
+            command_lines.append("  nemu-trap \"$status\"")
         command_lines.append("fi")
         script_lines.extend(
             command_lines
@@ -973,7 +976,7 @@ def write_runtime_files(pkg_dir, case_name_value, run_commands, profiling):
     (etc / "inittab").write_text("::once:/bin/sh /spec/run.sh\n", encoding="utf-8")
 
 
-def package_runtime_variant(variant, run_dir, profiling):
+def package_runtime_variant(variant, run_dir, profiling, multihart):
     build_dir = variant["build_dir"]
     pkg_dir = build_dir / "package"
     if pkg_dir.exists():
@@ -981,7 +984,7 @@ def package_runtime_variant(variant, run_dir, profiling):
     (pkg_dir / "spec").mkdir(parents=True)
     status(f"Packaging rootfs for {variant['name']}")
     copy_tree_contents(run_dir, pkg_dir / "spec")
-    write_runtime_files(pkg_dir, variant["name"], variant["commands"], profiling)
+    write_runtime_files(pkg_dir, variant["name"], variant["commands"], profiling, multihart)
 
 
 def package_case(args):
@@ -1038,7 +1041,7 @@ def package_case(args):
             shutil.rmtree(variant_root)
         for variant in variants:
             variant["build_dir"] = variant_root / variant["name"]
-            package_runtime_variant(variant, run_dir, args.profiling)
+            package_runtime_variant(variant, run_dir, args.profiling, args.multihart)
         write_variants_metadata(out_dir, variants)
         return
     if pkg_dir is None:
@@ -1048,7 +1051,7 @@ def package_case(args):
     (pkg_dir / "spec").mkdir(parents=True)
     status(f"Packaging rootfs for {args.case}")
     copy_tree_contents(run_dir, pkg_dir / "spec")
-    write_runtime_files(pkg_dir, args.case, run_commands, args.profiling)
+    write_runtime_files(pkg_dir, args.case, run_commands, args.profiling, args.multihart)
 
 
 def prepare_only(args):
@@ -1092,6 +1095,7 @@ def main():
     parser.add_argument("--elf-only", action="store_true")
     parser.add_argument("--all-runs", action="store_true")
     parser.add_argument("--profiling", choices=("0", "1"), default="1")
+    parser.add_argument("--multihart", choices=("0", "1"), default="0")
     args = parser.parse_args()
     if args.list_cases:
         print(" ".join(filter_cases(all_cases(), args.input_set, args.mode).keys()))

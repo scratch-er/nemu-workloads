@@ -98,6 +98,7 @@ $(SPEC2006_BUILD_DIR)/$(1)/download/sentinel:
 
 $(SPEC2006_BUILD_DIR)/$(1)/build-vars.$(SPEC2006_BUILD_VARS_HASH).stamp:
 	@mkdir -p "$$(@D)"
+	@rm -f "$$(@D)"/build-vars.*.stamp
 	@printf '%s\n' "input=$(SPEC2006_INPUT)" "tune=$(SPEC2006_TUNE)" "jobs=$(SPEC2006_JOBS)" "cross_compile=$(SPEC2006_CROSS_COMPILE)" "multihart=$(SPEC2006_MULTIHART)" "harts=$(SPEC2006_HARTS)" > "$$@"
 
 $(SPEC2006_BUILD_DIR)/$(1)/cfg.stamp: spec2006-force
@@ -142,6 +143,7 @@ $(SPEC2006_BUILD_DIR)/$(1)/rootfs.cpio: $(SPEC2006_PREPARE_STAMP) $(SPEC2006_BUI
 	SPEC2006_JOBS="$$(SPEC2006_JOBS)" \
 	MULTIHART="$$(SPEC2006_MULTIHART)" \
 	HARTS="$$(SPEC2006_HARTS)" \
+	MULTIHART_PAYLOAD_DIR=spec \
 	bash "$$(SPEC2006_SCRIPTS_DIR)/build-workload-linux.sh" "$$(SPEC2006_WORKLOAD_DIR)" "$(SPEC2006_BUILD_DIR)/$(1)"
 
 $(SPEC2006_BUILD_DIR)/$(1)/fw_payload.bin: $$(SPEC2006_DTS_SOURCES) $$(SPEC2006_DEFAULT_DTB_STAMP) $$(SPEC2006_GCPT_BIN) $$(SPEC2006_SCRIPTS_DIR)/build-firmware-linux.sh $(SPEC2006_BUILD_DIR)/$(1)/rootfs.cpio $$(SPEC2006_LINUX_IMAGE) $$(SPEC2006_SBI_BIN)

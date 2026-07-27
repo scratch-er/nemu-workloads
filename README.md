@@ -31,6 +31,11 @@ make linux/spec2006 BENCH=astar INPUT=biglakes \
   SPEC2006_ISO=/path/to/cpu2006.iso \
   MULTIHART=1 HARTS=2 \
   DEFAULT_DTB=xiangshan-fpga-noAIA-2hart-mem8g -jN
+
+make linux/spec2017 BENCH=mcf MODE=rate INPUT=ref \
+  SPEC2017_ISO=/path/to/cpu2017.iso \
+  MULTIHART=1 HARTS=2 \
+  DEFAULT_DTB=xiangshan-fpga-noAIA-2hart-mem8g -jN
 ```
 
 `MULTIHART=1` creates per-hart workload directories, uses `/bin/nemu-trap` to

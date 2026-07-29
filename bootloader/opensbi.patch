@@ -1,31 +1,17 @@
-diff --git a/Makefile b/Makefile
-index 7df39b4e..da6edd2f 100644
---- a/Makefile
-+++ b/Makefile
-@@ -346,7 +346,7 @@ GENFLAGS	+=	$(libsbiutils-genflags-y)
- GENFLAGS	+=	$(platform-genflags-y)
- GENFLAGS	+=	$(firmware-genflags-y)
- 
--CFLAGS		=	-g -Wall -Werror -ffreestanding -nostdlib -fno-stack-protector -fno-strict-aliasing
-+CFLAGS		=	-g -Wall -Werror -ffreestanding -nostdlib -fno-stack-protector -fno-strict-aliasing -std=gnu11
- ifneq ($(DEBUG),)
- CFLAGS		+=	-O0
- else
 diff --git a/firmware/fw_base.S b/firmware/fw_base.S
-index b950c0b8..c1422319 100644
+index 0c5c65c1..1f3924b0 100644
 --- a/firmware/fw_base.S
 +++ b/firmware/fw_base.S
-@@ -101,9 +101,19 @@ _bss_zero:
- 	call	fw_save_info
+@@ -130,8 +130,18 @@ _bss_zero:
  	MOV_5R	a0, s0, a1, s1, a2, s2, a3, s3, a4, s4
  
+ #ifdef FW_FDT_PATH
+-	/* Override previous arg1 */
 +	/* Override previous arg1
 +	 * Here, OpenSBI is patched so that if FW_JUMP_FDT_ADDR
 +	 * or FW_JUMP_FDT_OFFSET is defined, then OpenSBI will
 +	 * assume that the previous stage has put FDT there.
 +	 */
- #ifdef FW_FDT_PATH
--	/* Override previous arg1 */
  	lla	a1, fw_fdt_bin
 +#elif defined(FW_JUMP_FDT_ADDR)
 +	li a1, FW_JUMP_FDT_ADDR

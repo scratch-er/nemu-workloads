@@ -99,16 +99,29 @@ The export tree is:
 ```text
 build/images/<mode>/
   bin/<variant>.fw_payload.bin
-  kernel/<variant>.Image
+  kernel/<variant>.vmlinux
+  kernel/<variant>.System.map
+  kernel/<variant>.config
   elf/<case>.elf
   cmd/<variant>.run.sh
   rootfs/<variant>.rootfs.cpio
+  dt/<variant>.dtb
+  dt/<variant>.dts
   gcpt/gcpt.elf
   gcpt/gcpt.bin
+  opensbi/fw_jump.elf
+  opensbi/defconfig
+  manifest/<variant>.json
   cfg/riscv-gcc15.cfg
 ```
 
 `<mode>` is `spec2017rate` for rate and `spec2017speed` for speed.
+
+`bin/` is the directly loadable firmware image and `rootfs/` is its initramfs.
+`kernel/` contains the ELF kernel plus its symbol map and configuration for
+debugging; `dt/` contains the exact DTB and generated DTS used by each variant.
+`manifest/` records component hashes and load addresses. `gcpt/`, `cfg/`, and
+`opensbi/` are shared by the export tree.
 
 When SPEC generates multiple run commands for a case, `spec2017-images` exports
 one firmware image, one rootfs, and one `cmd/<variant>.run.sh` per command,

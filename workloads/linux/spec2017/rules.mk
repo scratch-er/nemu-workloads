@@ -198,7 +198,7 @@ linux/$(1): $(SPEC2017_BUILD_DIR)/$(1)/fw_payload.bin
 
 WORKLOAD_PHONY_TARGETS += linux/$(1)
 
-$(SPEC2017_IMAGE_DIR)/stamps/$(1).images.stamp: $(SPEC2017_PREPARE_STAMP) $(SPEC2017_BUILD_DIR)/$(1)/cfg.$(call spec2017_case_cfg_hash,$(1)).stamp $$(SPEC2017_HELPER) $$(SPEC2017_WORKLOAD_DIR)/build.sh $(SPEC2017_BUILD_DIR)/$(1)/download/sentinel $(SPEC2017_BUILD_DIR)/$(1)/build-vars.$(SPEC2017_BUILD_VARS_HASH).stamp $$(SPEC2017_DTS_SOURCES) $$(SPEC2017_GCPT_BIN) $$(SPEC2017_GCPT_ELF) $$(SPEC2017_SCRIPTS_DIR)/build-firmware-linux.sh $$(SPEC2017_SCRIPTS_DIR)/package-multihart-rootfs.py $$(SPEC2017_LINUX_IMAGE) $$(SPEC2017_SBI_BIN) | spec2017-check-spec-config
+$(SPEC2017_IMAGE_DIR)/stamps/$(1).images.stamp: $(SPEC2017_PREPARE_STAMP) $(SPEC2017_BUILD_DIR)/$(1)/cfg.$(call spec2017_case_cfg_hash,$(1)).stamp $$(SPEC2017_HELPER) $$(SPEC2017_WORKLOAD_DIR)/build.sh $(SPEC2017_BUILD_DIR)/$(1)/download/sentinel $(SPEC2017_BUILD_DIR)/$(1)/build-vars.$(SPEC2017_BUILD_VARS_HASH).stamp $$(SPEC2017_DTS_SOURCES) $$(SPEC2017_GCPT_BIN) $$(SPEC2017_GCPT_ELF) $$(SPEC2017_SCRIPTS_DIR)/build-firmware-linux.sh $$(SPEC2017_SCRIPTS_DIR)/export-linux-debug-artifacts.sh $$(SPEC2017_SCRIPTS_DIR)/package-multihart-rootfs.py $$(SPEC2017_LINUX_IMAGE) $$(SPEC2017_SBI_BIN) | spec2017-check-spec-config
 	@printf '$(SPEC2017_PROGRESS_PREFIX) Packaging split run images for $(1)\n'
 	@WORKLOAD_DIR="$$(abspath $$(SPEC2017_WORKLOAD_DIR))" \
 	WORKLOAD_BUILD_DIR="$$(abspath $(SPEC2017_BUILD_DIR)/$(1))" \
@@ -218,7 +218,7 @@ $(SPEC2017_IMAGE_DIR)/stamps/$(1).images.stamp: $(SPEC2017_PREPARE_STAMP) $(SPEC
 	SPEC2017_MULTIHART="$$(SPEC2017_MULTIHART)" \
 	bash "$$(abspath $$(SPEC2017_WORKLOAD_DIR))/build.sh"
 	@printf '$(SPEC2017_PROGRESS_PREFIX) Exporting $(1) split artifacts to $(SPEC2017_IMAGE_DIR)\n'
-	@mkdir -p "$(SPEC2017_IMAGE_DIR)/bin" "$(SPEC2017_IMAGE_DIR)/kernel" "$(SPEC2017_IMAGE_DIR)/elf" "$(SPEC2017_IMAGE_DIR)/cmd" "$(SPEC2017_IMAGE_DIR)/rootfs" "$(SPEC2017_IMAGE_DIR)/cfg" "$(SPEC2017_IMAGE_DIR)/gcpt" "$(SPEC2017_IMAGE_DIR)/logs/build_elf" "$(SPEC2017_IMAGE_DIR)/stamps"
+	@mkdir -p "$(SPEC2017_IMAGE_DIR)/bin" "$(SPEC2017_IMAGE_DIR)/kernel" "$(SPEC2017_IMAGE_DIR)/elf" "$(SPEC2017_IMAGE_DIR)/cmd" "$(SPEC2017_IMAGE_DIR)/rootfs" "$(SPEC2017_IMAGE_DIR)/cfg" "$(SPEC2017_IMAGE_DIR)/gcpt" "$(SPEC2017_IMAGE_DIR)/dt" "$(SPEC2017_IMAGE_DIR)/manifest" "$(SPEC2017_IMAGE_DIR)/logs/build_elf" "$(SPEC2017_IMAGE_DIR)/stamps"
 	@if [ ! -f "$(SPEC2017_IMAGE_DIR)/cfg/$(notdir $(call spec2017_case_cfg,$(1)))" ]; then \
 		cp "$(abspath $(call spec2017_case_cfg,$(1)))" "$(SPEC2017_IMAGE_DIR)/cfg/$(notdir $(call spec2017_case_cfg,$(1)))"; \
 	fi
@@ -251,7 +251,7 @@ $(SPEC2017_IMAGE_DIR)/stamps/$(1).images.stamp: $(SPEC2017_PREPARE_STAMP) $(SPEC
 		else \
 			cp "$$$$build_dir/package/spec_common/launch_multihart.sh" "$(SPEC2017_IMAGE_DIR)/cmd/$$$$variant.run.sh"; \
 		fi; \
-		cp "$$(SPEC2017_LINUX_IMAGE)" "$(SPEC2017_IMAGE_DIR)/kernel/$$$$variant.Image"; \
+		MULTIHART="$$(SPEC2017_MULTIHART)" bash "$$(SPEC2017_SCRIPTS_DIR)/export-linux-debug-artifacts.sh" "$$(SPEC2017_BUILDROOT_DIR)" "$$(SPEC2017_SBI_BUILD_DIR)" "$$$$build_dir" "$(SPEC2017_IMAGE_DIR)" "$$$$variant" "$(call spec2017_case_dtb_name,$(1))"; \
 		cp "$$$$build_dir/rootfs.cpio" "$(SPEC2017_IMAGE_DIR)/rootfs/$$$$variant.rootfs.cpio"; \
 		cp "$$$$build_dir/fw_payload.bin" "$(SPEC2017_IMAGE_DIR)/bin/$$$$variant.fw_payload.bin"; \
 	done
@@ -304,7 +304,7 @@ spec2017-images: spec2017-check-spec-config
 		echo "No SPEC2017 cases selected by SPEC2017_IMAGE_INPUT=$(SPEC2017_IMAGE_INPUT) SPEC2017_IMAGE_MODE=$(SPEC2017_IMAGE_MODE)"; \
 		exit 1; \
 		fi; \
-		rm -rf "$(SPEC2017_IMAGE_DIR)/bin" "$(SPEC2017_IMAGE_DIR)/kernel" "$(SPEC2017_IMAGE_DIR)/elf" "$(SPEC2017_IMAGE_DIR)/cmd" "$(SPEC2017_IMAGE_DIR)/rootfs" "$(SPEC2017_IMAGE_DIR)/cfg" "$(SPEC2017_IMAGE_DIR)/gcpt" "$(SPEC2017_IMAGE_DIR)/logs" "$(SPEC2017_IMAGE_DIR)/stamps"; \
+		rm -rf "$(SPEC2017_IMAGE_DIR)/bin" "$(SPEC2017_IMAGE_DIR)/kernel" "$(SPEC2017_IMAGE_DIR)/elf" "$(SPEC2017_IMAGE_DIR)/cmd" "$(SPEC2017_IMAGE_DIR)/rootfs" "$(SPEC2017_IMAGE_DIR)/cfg" "$(SPEC2017_IMAGE_DIR)/gcpt" "$(SPEC2017_IMAGE_DIR)/dt" "$(SPEC2017_IMAGE_DIR)/manifest" "$(SPEC2017_IMAGE_DIR)/logs" "$(SPEC2017_IMAGE_DIR)/stamps"; \
 	total="$(words $(SPEC2017_IMAGE_CASES))"; \
 	i=0; \
 	for case in $(SPEC2017_IMAGE_CASES); do \

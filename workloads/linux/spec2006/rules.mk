@@ -161,28 +161,18 @@ linux/$(1): $(SPEC2006_BUILD_DIR)/$(1)/fw_payload.bin
 
 WORKLOAD_PHONY_TARGETS += linux/$(1)
 
-$(call spec2006_case_image_stamp,$(1)): $(SPEC2006_PREPARE_STAMP) $(SPEC2006_BUILD_DIR)/$(1)/fw_payload.bin $(SPEC2006_GCPT_ELF) $(SPEC2006_GCPT_BIN) $(SPEC2006_LINUX_IMAGE) | spec2006-check-spec-iso
+$(call spec2006_case_image_stamp,$(1)): $(SPEC2006_PREPARE_STAMP) $(SPEC2006_BUILD_DIR)/$(1)/fw_payload.bin $(SPEC2006_GCPT_ELF) $(SPEC2006_GCPT_BIN) $(SPEC2006_LINUX_IMAGE) $(SPEC2006_SBI_BIN) $$(SPEC2006_SCRIPTS_DIR)/export-linux-debug-artifacts.sh | spec2006-check-spec-iso
 	@printf '$(SPEC2006_PROGRESS_PREFIX) Exporting $(1) artifacts to $(SPEC2006_IMAGE_DIR)\n'
-	@mkdir -p "$(SPEC2006_IMAGE_DIR)/bin" "$(SPEC2006_IMAGE_DIR)/kernel" "$(SPEC2006_IMAGE_DIR)/rootfs" "$(SPEC2006_IMAGE_DIR)/elf" "$(SPEC2006_IMAGE_DIR)/cmd" "$(SPEC2006_IMAGE_DIR)/cfg" "$(SPEC2006_IMAGE_DIR)/gcpt" "$(SPEC2006_IMAGE_DIR)/logs/build_elf" "$(SPEC2006_IMAGE_DIR)/stamps"
-	@if [ ! -f "$(SPEC2006_IMAGE_DIR)/cfg/$(notdir $(SPEC2006_CFG))" ]; then \
-		printf '$(SPEC2006_PROGRESS_PREFIX) Exporting spec2006 cfg to $(SPEC2006_IMAGE_DIR)/cfg\n'; \
-		cp "$(SPEC2006_CFG)" "$(SPEC2006_IMAGE_DIR)/cfg/$(notdir $(SPEC2006_CFG))"; \
-	fi
-	@if [ ! -f "$(SPEC2006_IMAGE_DIR)/gcpt/gcpt.elf" ] || [ ! -f "$(SPEC2006_IMAGE_DIR)/gcpt/gcpt.bin" ]; then \
-		printf '$(SPEC2006_PROGRESS_PREFIX) Exporting gcpt artifacts to $(SPEC2006_IMAGE_DIR)/gcpt\n'; \
-		cp "$(SPEC2006_GCPT_ELF)" "$(SPEC2006_IMAGE_DIR)/gcpt/gcpt.elf"; \
-		cp "$(SPEC2006_GCPT_BIN)" "$(SPEC2006_IMAGE_DIR)/gcpt/gcpt.bin"; \
-	fi
-	@cp "$(SPEC2006_BUILD_DIR)/$(1)/elf/$(1).elf" "$(SPEC2006_IMAGE_DIR)/elf/$(1).elf"
-	@cp "$(SPEC2006_BUILD_DIR)/$(1)/logs/build_elf/build.log" "$(SPEC2006_IMAGE_DIR)/logs/build_elf/$(1).log"
-	@cp "$(SPEC2006_LINUX_IMAGE)" "$(SPEC2006_IMAGE_DIR)/kernel/$(1).Image"
-	@cp "$(SPEC2006_BUILD_DIR)/$(1)/rootfs.cpio" "$(SPEC2006_IMAGE_DIR)/rootfs/$(1).rootfs.cpio"
-	@cp "$(SPEC2006_BUILD_DIR)/$(1)/fw_payload.bin" "$(SPEC2006_IMAGE_DIR)/bin/$(1).fw_payload.bin"
-	@if [ -f "$(SPEC2006_BUILD_DIR)/$(1)/package/spec/run.sh" ]; then \
-		cp "$(SPEC2006_BUILD_DIR)/$(1)/package/spec/run.sh" "$(SPEC2006_IMAGE_DIR)/cmd/$(1).run.sh"; \
-	else \
-		cp "$(SPEC2006_BUILD_DIR)/$(1)/package/spec_common/launch_multihart.sh" "$(SPEC2006_IMAGE_DIR)/cmd/$(1).run.sh"; \
-	fi
+	@run_command="$(SPEC2006_BUILD_DIR)/$(1)/package/spec/run.sh"; \
+	if [ ! -f "$$$$run_command" ]; then run_command="$(SPEC2006_BUILD_DIR)/$(1)/package/spec_common/launch_multihart.sh"; fi; \
+	MULTIHART="$(SPEC2006_MULTIHART)" \
+	WORKLOAD_ELF="$(SPEC2006_BUILD_DIR)/$(1)/elf/$(1).elf" \
+	BUILD_LOG="$(SPEC2006_BUILD_DIR)/$(1)/logs/build_elf/build.log" \
+	RUN_COMMAND="$$$$run_command" \
+	SPEC_CONFIG="$(SPEC2006_CFG)" \
+	GCPT_ELF="$(SPEC2006_GCPT_ELF)" \
+	GCPT_BIN="$(SPEC2006_GCPT_BIN)" \
+	bash "$(SPEC2006_SCRIPTS_DIR)/export-linux-debug-artifacts.sh" "$(SPEC2006_BUILDROOT_DIR)" "$(SPEC2006_SBI_BUILD_DIR)" "$(SPEC2006_BUILD_DIR)/$(1)" "$(SPEC2006_IMAGE_DIR)" "$(1)" "$(SPEC2006_DEFAULT_DTB)"
 	@touch "$$@"
 endef
 
@@ -222,7 +212,7 @@ spec2006-images: spec2006-check-spec-iso
 		echo "No SPEC2006 cases selected by SPEC2006_INPUT=$(SPEC2006_INPUT)"; \
 		exit 1; \
 	fi; \
-	rm -rf "$(SPEC2006_IMAGE_DIR)/bin" "$(SPEC2006_IMAGE_DIR)/kernel" "$(SPEC2006_IMAGE_DIR)/rootfs" "$(SPEC2006_IMAGE_DIR)/elf" "$(SPEC2006_IMAGE_DIR)/cmd" "$(SPEC2006_IMAGE_DIR)/cfg" "$(SPEC2006_IMAGE_DIR)/gcpt" "$(SPEC2006_IMAGE_DIR)/logs" "$(SPEC2006_IMAGE_DIR)/stamps"; \
+	rm -rf "$(SPEC2006_IMAGE_DIR)/bin" "$(SPEC2006_IMAGE_DIR)/kernel" "$(SPEC2006_IMAGE_DIR)/rootfs" "$(SPEC2006_IMAGE_DIR)/elf" "$(SPEC2006_IMAGE_DIR)/cmd" "$(SPEC2006_IMAGE_DIR)/cfg" "$(SPEC2006_IMAGE_DIR)/gcpt" "$(SPEC2006_IMAGE_DIR)/dt" "$(SPEC2006_IMAGE_DIR)/manifest" "$(SPEC2006_IMAGE_DIR)/logs" "$(SPEC2006_IMAGE_DIR)/stamps"; \
 	total="$(words $(SPEC2006_IMAGE_CASES))"; \
 	i=0; \
 	for case in $(SPEC2006_IMAGE_CASES); do \

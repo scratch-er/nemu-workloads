@@ -104,18 +104,29 @@ The export directory is organized as:
 ```text
 build/images/spec2006/
   bin/<case>.fw_payload.bin
-  kernel/<case>.Image
+  kernel/<case>.vmlinux
+  kernel/<case>.System.map
+  kernel/<case>.config
   rootfs/<case>.rootfs.cpio
+  dt/<case>.dtb
+  dt/<case>.dts
   elf/<case>.elf
   cmd/<case>.run.sh
   gcpt/gcpt.elf
   gcpt/gcpt.bin
+  opensbi/fw_jump.elf
+  opensbi/defconfig
+  manifest/<case>.json
   cfg/<spec-cfg-name>
   logs/build_elf/<case>.log
   stamps/<case>.images.stamp
 ```
 
-`gcpt/` and `cfg/` are copied once per export tree, not once per case.
+`bin/` is the directly loadable firmware image and `rootfs/` is its initramfs.
+`kernel/` contains the ELF kernel plus its symbol map and configuration for
+debugging; `dt/` contains the exact DTB and generated DTS used by that case.
+`manifest/` records component hashes and load addresses. `gcpt/`, `cfg/`, and
+`opensbi/` are shared by the export tree.
 
 Re-running `make spec2006-images` rebuilds the export tree so the directory
 layout and contents stay complete and consistent.

@@ -218,17 +218,6 @@ $(SPEC2017_IMAGE_DIR)/stamps/$(1).images.stamp: $(SPEC2017_PREPARE_STAMP) $(SPEC
 	SPEC2017_MULTIHART="$$(SPEC2017_MULTIHART)" \
 	bash "$$(abspath $$(SPEC2017_WORKLOAD_DIR))/build.sh"
 	@printf '$(SPEC2017_PROGRESS_PREFIX) Exporting $(1) split artifacts to $(SPEC2017_IMAGE_DIR)\n'
-	@mkdir -p "$(SPEC2017_IMAGE_DIR)/bin" "$(SPEC2017_IMAGE_DIR)/kernel" "$(SPEC2017_IMAGE_DIR)/elf" "$(SPEC2017_IMAGE_DIR)/cmd" "$(SPEC2017_IMAGE_DIR)/rootfs" "$(SPEC2017_IMAGE_DIR)/cfg" "$(SPEC2017_IMAGE_DIR)/gcpt" "$(SPEC2017_IMAGE_DIR)/dt" "$(SPEC2017_IMAGE_DIR)/manifest" "$(SPEC2017_IMAGE_DIR)/logs/build_elf" "$(SPEC2017_IMAGE_DIR)/stamps"
-	@if [ ! -f "$(SPEC2017_IMAGE_DIR)/cfg/$(notdir $(call spec2017_case_cfg,$(1)))" ]; then \
-		cp "$(abspath $(call spec2017_case_cfg,$(1)))" "$(SPEC2017_IMAGE_DIR)/cfg/$(notdir $(call spec2017_case_cfg,$(1)))"; \
-	fi
-	@if [ ! -f "$(SPEC2017_IMAGE_DIR)/gcpt/gcpt.elf" ] || [ ! -f "$(SPEC2017_IMAGE_DIR)/gcpt/gcpt.bin" ]; then \
-		cp "$(SPEC2017_GCPT_ELF)" "$(SPEC2017_IMAGE_DIR)/gcpt/gcpt.elf"; \
-		cp "$(SPEC2017_GCPT_BIN)" "$(SPEC2017_IMAGE_DIR)/gcpt/gcpt.bin"; \
-	fi
-	@rm -f "$(SPEC2017_IMAGE_DIR)/elf/$(1)"_*.elf
-	@cp "$(SPEC2017_BUILD_DIR)/$(1)/elf/$(1).elf" "$(SPEC2017_IMAGE_DIR)/elf/$(1).elf"
-	@cp "$(SPEC2017_BUILD_DIR)/$(1)/logs/build_elf/build.log" "$(SPEC2017_IMAGE_DIR)/logs/build_elf/$(1).log"
 	@$(SPEC2017_PYTHON) "$(SPEC2017_HELPER)" --list-packaged-variants --out-dir "$(SPEC2017_BUILD_DIR)/$(1)" | while IFS="	" read -r variant build_dir; do \
 		printf '$(SPEC2017_PROGRESS_PREFIX) Assembling firmware for %s\n' "$$$$variant"; \
 		rm -f "$$$$build_dir/rootfs.cpio"; \
@@ -246,14 +235,16 @@ $(SPEC2017_IMAGE_DIR)/stamps/$(1).images.stamp: $(SPEC2017_PREPARE_STAMP) $(SPEC
 		SPEC2017_PROGRESS_K="$$(SPEC2017_PROGRESS_K)" \
 		SPEC2017_PROGRESS_N="$$(SPEC2017_PROGRESS_N)" \
 		bash "$$(SPEC2017_SCRIPTS_DIR)/build-firmware-linux.sh" "$$(SPEC2017_GCPT_BIN)" "$$(SPEC2017_SBI_BUILD_DIR)" "$$(SPEC2017_DTS_DIR)" "$$(SPEC2017_LINUX_IMAGE)" "$$$$build_dir"; \
-		if [ -f "$$$$build_dir/package/spec/run.sh" ]; then \
-			cp "$$$$build_dir/package/spec/run.sh" "$(SPEC2017_IMAGE_DIR)/cmd/$$$$variant.run.sh"; \
-		else \
-			cp "$$$$build_dir/package/spec_common/launch_multihart.sh" "$(SPEC2017_IMAGE_DIR)/cmd/$$$$variant.run.sh"; \
-		fi; \
-		MULTIHART="$$(SPEC2017_MULTIHART)" bash "$$(SPEC2017_SCRIPTS_DIR)/export-linux-debug-artifacts.sh" "$$(SPEC2017_BUILDROOT_DIR)" "$$(SPEC2017_SBI_BUILD_DIR)" "$$$$build_dir" "$(SPEC2017_IMAGE_DIR)" "$$$$variant" "$(call spec2017_case_dtb_name,$(1))"; \
-		cp "$$$$build_dir/rootfs.cpio" "$(SPEC2017_IMAGE_DIR)/rootfs/$$$$variant.rootfs.cpio"; \
-		cp "$$$$build_dir/fw_payload.bin" "$(SPEC2017_IMAGE_DIR)/bin/$$$$variant.fw_payload.bin"; \
+		run_command="$$$$build_dir/package/spec/run.sh"; \
+		if [ ! -f "$$$$run_command" ]; then run_command="$$$$build_dir/package/spec_common/launch_multihart.sh"; fi; \
+		MULTIHART="$$(SPEC2017_MULTIHART)" \
+		WORKLOAD_ELF="$$(SPEC2017_BUILD_DIR)/$(1)/elf/$(1).elf" \
+		BUILD_LOG="$$(SPEC2017_BUILD_DIR)/$(1)/logs/build_elf/build.log" \
+		RUN_COMMAND="$$$$run_command" \
+		SPEC_CONFIG="$(abspath $(call spec2017_case_cfg,$(1)))" \
+		GCPT_ELF="$$(SPEC2017_GCPT_ELF)" \
+		GCPT_BIN="$$(SPEC2017_GCPT_BIN)" \
+		bash "$$(SPEC2017_SCRIPTS_DIR)/export-linux-debug-artifacts.sh" "$$(SPEC2017_BUILDROOT_DIR)" "$$(SPEC2017_SBI_BUILD_DIR)" "$$$$build_dir" "$(SPEC2017_IMAGE_DIR)" "$$$$variant" "$(call spec2017_case_dtb_name,$(1))"; \
 	done
 	@touch "$$@"
 endef

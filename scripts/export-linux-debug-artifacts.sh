@@ -7,6 +7,12 @@ WORKLOAD_BUILD_DIR="$(realpath "$3")"
 IMAGE_DIR="$(realpath -m "$4")"
 ARTIFACT_NAME="$5"
 DTB_BASENAME="$6"
+WORKLOAD_ELF="$(realpath "${WORKLOAD_ELF:?WORKLOAD_ELF must be set}")"
+BUILD_LOG="$(realpath "${BUILD_LOG:?BUILD_LOG must be set}")"
+RUN_COMMAND="$(realpath "${RUN_COMMAND:?RUN_COMMAND must be set}")"
+SPEC_CONFIG="$(realpath "${SPEC_CONFIG:?SPEC_CONFIG must be set}")"
+GCPT_ELF="$(realpath "${GCPT_ELF:?GCPT_ELF must be set}")"
+GCPT_BIN="$(realpath "${GCPT_BIN:?GCPT_BIN must be set}")"
 
 mapfile -t vmlinux_files < <(find "$BUILDROOT_DIR/output/build" -path '*/vmlinux' -type f -print | sort)
 if [ "${#vmlinux_files[@]}" -ne 1 ]; then
@@ -24,10 +30,8 @@ SBI_ELF="$SBI_BUILD_DIR/build/platform/generic/firmware/fw_jump.elf"
 SBI_CONFIG="$SBI_BUILD_DIR/platform/generic/configs/defconfig"
 FIRMWARE_IMAGE="$WORKLOAD_BUILD_DIR/fw_payload.bin"
 ROOTFS="$WORKLOAD_BUILD_DIR/rootfs.cpio"
-GCPT_ELF="$IMAGE_DIR/gcpt/gcpt.elf"
-GCPT_BIN="$IMAGE_DIR/gcpt/gcpt.bin"
 
-for file in "$SYSTEM_MAP" "$KERNEL_CONFIG" "$DTB_FILE" "$DTS_FILE" "$SBI_ELF" "$SBI_CONFIG" "$FIRMWARE_IMAGE" "$ROOTFS" "$GCPT_ELF" "$GCPT_BIN"; do
+for file in "$SYSTEM_MAP" "$KERNEL_CONFIG" "$DTB_FILE" "$DTS_FILE" "$SBI_ELF" "$SBI_CONFIG" "$FIRMWARE_IMAGE" "$ROOTFS" "$WORKLOAD_ELF" "$BUILD_LOG" "$RUN_COMMAND" "$SPEC_CONFIG" "$GCPT_ELF" "$GCPT_BIN"; do
     if [ ! -f "$file" ]; then
         echo "Required debug artifact not found: $file" >&2
         exit 1
@@ -38,8 +42,25 @@ KERNEL_DIR="$IMAGE_DIR/kernel"
 DT_DIR="$IMAGE_DIR/dt"
 SBI_DIR="$IMAGE_DIR/opensbi"
 MANIFEST_DIR="$IMAGE_DIR/manifest"
-mkdir -p "$KERNEL_DIR" "$DT_DIR" "$SBI_DIR" "$MANIFEST_DIR"
+BIN_DIR="$IMAGE_DIR/bin"
+ROOTFS_DIR="$IMAGE_DIR/rootfs"
+ELF_DIR="$IMAGE_DIR/elf"
+CMD_DIR="$IMAGE_DIR/cmd"
+CFG_DIR="$IMAGE_DIR/cfg"
+GCPT_DIR="$IMAGE_DIR/gcpt"
+LOG_DIR="$IMAGE_DIR/logs/build_elf"
+STAMP_DIR="$IMAGE_DIR/stamps"
+mkdir -p "$KERNEL_DIR" "$DT_DIR" "$SBI_DIR" "$MANIFEST_DIR" "$BIN_DIR" "$ROOTFS_DIR" "$ELF_DIR" "$CMD_DIR" "$CFG_DIR" "$GCPT_DIR" "$LOG_DIR" "$STAMP_DIR"
 
+WORKLOAD_ELF_NAME="$(basename "$WORKLOAD_ELF" .elf)"
+cp "$FIRMWARE_IMAGE" "$BIN_DIR/$ARTIFACT_NAME.fw_payload.bin"
+cp "$ROOTFS" "$ROOTFS_DIR/$ARTIFACT_NAME.rootfs.cpio"
+cp "$WORKLOAD_ELF" "$ELF_DIR/$WORKLOAD_ELF_NAME.elf"
+cp "$BUILD_LOG" "$LOG_DIR/$WORKLOAD_ELF_NAME.log"
+cp "$RUN_COMMAND" "$CMD_DIR/$ARTIFACT_NAME.run.sh"
+cp "$SPEC_CONFIG" "$CFG_DIR/$(basename "$SPEC_CONFIG")"
+cp "$GCPT_ELF" "$GCPT_DIR/gcpt.elf"
+cp "$GCPT_BIN" "$GCPT_DIR/gcpt.bin"
 cp "$VMLINUX" "$KERNEL_DIR/$ARTIFACT_NAME.vmlinux"
 cp "$SYSTEM_MAP" "$KERNEL_DIR/$ARTIFACT_NAME.System.map"
 cp "$KERNEL_CONFIG" "$KERNEL_DIR/$ARTIFACT_NAME.config"

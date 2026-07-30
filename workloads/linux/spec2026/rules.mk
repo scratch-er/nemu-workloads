@@ -165,16 +165,14 @@ WORKLOAD_PHONY_TARGETS += linux/$(1)
 
 $(call spec2026_case_image_stamp,$(1)): $(SPEC2026_BUILD_DIR)/$(1)/fw_payload.bin $(SPEC2026_GCPT_ELF) $(SPEC2026_GCPT_BIN) $(SPEC2026_LINUX_IMAGE) $(SPEC2026_SBI_BIN) $$(SPEC2026_SCRIPTS_DIR)/export-linux-debug-artifacts.sh | spec2026-check-spec-iso
 	@printf '$(SPEC2026_PROGRESS_PREFIX) Exporting $(1) artifacts to $(call spec2026_case_image_dir,$(1))\n'
-	@mkdir -p "$(call spec2026_case_image_dir,$(1))/bin" "$(call spec2026_case_image_dir,$(1))/kernel" "$(call spec2026_case_image_dir,$(1))/rootfs" "$(call spec2026_case_image_dir,$(1))/elf" "$(call spec2026_case_image_dir,$(1))/cmd" "$(call spec2026_case_image_dir,$(1))/cfg" "$(call spec2026_case_image_dir,$(1))/gcpt" "$(call spec2026_case_image_dir,$(1))/dt" "$(call spec2026_case_image_dir,$(1))/manifest" "$(call spec2026_case_image_dir,$(1))/logs/build_elf" "$(call spec2026_case_image_dir,$(1))/stamps"
-	@cp "$(SPEC2026_CFG)" "$(call spec2026_case_image_dir,$(1))/cfg/$(notdir $(SPEC2026_CFG))"
-	@cp "$(SPEC2026_GCPT_ELF)" "$(call spec2026_case_image_dir,$(1))/gcpt/gcpt.elf"
-	@cp "$(SPEC2026_GCPT_BIN)" "$(call spec2026_case_image_dir,$(1))/gcpt/gcpt.bin"
-	@cp "$(SPEC2026_BUILD_DIR)/$(1)/elf/$(1).elf" "$(call spec2026_case_image_dir,$(1))/elf/$(1).elf"
-	@cp "$(SPEC2026_BUILD_DIR)/$(1)/logs/build_elf/build.log" "$(call spec2026_case_image_dir,$(1))/logs/build_elf/$(1).log"
-	@MULTIHART="$(SPEC2026_MULTIHART)" bash "$(SPEC2026_SCRIPTS_DIR)/export-linux-debug-artifacts.sh" "$(SPEC2026_BUILDROOT_DIR)" "$(SPEC2026_SBI_BUILD_DIR)" "$(SPEC2026_BUILD_DIR)/$(1)" "$(call spec2026_case_image_dir,$(1))" "$(1)" "$(call spec2026_case_dtb_name,$(1))"
-	@cp "$(SPEC2026_BUILD_DIR)/$(1)/rootfs.cpio" "$(call spec2026_case_image_dir,$(1))/rootfs/$(1).rootfs.cpio"
-	@cp "$(SPEC2026_BUILD_DIR)/$(1)/fw_payload.bin" "$(call spec2026_case_image_dir,$(1))/bin/$(1).fw_payload.bin"
-	@cp "$(SPEC2026_BUILD_DIR)/$(1)/package/spec/run.sh" "$(call spec2026_case_image_dir,$(1))/cmd/$(1).run.sh"
+	@MULTIHART="$(SPEC2026_MULTIHART)" \
+	WORKLOAD_ELF="$(SPEC2026_BUILD_DIR)/$(1)/elf/$(1).elf" \
+	BUILD_LOG="$(SPEC2026_BUILD_DIR)/$(1)/logs/build_elf/build.log" \
+	RUN_COMMAND="$(SPEC2026_BUILD_DIR)/$(1)/package/spec/run.sh" \
+	SPEC_CONFIG="$(SPEC2026_CFG)" \
+	GCPT_ELF="$(SPEC2026_GCPT_ELF)" \
+	GCPT_BIN="$(SPEC2026_GCPT_BIN)" \
+	bash "$(SPEC2026_SCRIPTS_DIR)/export-linux-debug-artifacts.sh" "$(SPEC2026_BUILDROOT_DIR)" "$(SPEC2026_SBI_BUILD_DIR)" "$(SPEC2026_BUILD_DIR)/$(1)" "$(call spec2026_case_image_dir,$(1))" "$(1)" "$(call spec2026_case_dtb_name,$(1))"
 	@touch "$$@"
 endef
 

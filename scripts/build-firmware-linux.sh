@@ -124,7 +124,7 @@ check_dtb_memory_layout() {
     fi
 }
 
-check_multihart_cpu_count() {
+check_dtb_cpu_count() {
     local dts_file="$1"
     local expected_harts="$2"
     local actual_harts
@@ -279,10 +279,12 @@ if ! [ -f "$DEFAULT_DTS_FILE" ]; then
     echo "Default device tree source not found: $DEFAULT_DTS_FILE" >&2
     exit 1
 fi
+expected_harts=1
 if [ "${MULTIHART:-0}" = 1 ]; then
-    check_multihart_cpu_count "$DEFAULT_DTS_FILE" "$HARTS"
+    expected_harts="$HARTS"
     check_multihart_checkpoint_reservation "$DEFAULT_DTS_FILE"
 fi
+check_dtb_cpu_count "$DEFAULT_DTS_FILE" "$expected_harts"
 check_dtb_memory_layout "$DEFAULT_DTS_FILE" "$DTB_MIN_MEMORY_BYTES"
 SBI_IMAGE="$SBI_BUILD_DIR/build/platform/generic/firmware/fw_jump.bin"
 if [ "${MULTIHART:-0}" = 1 ]; then

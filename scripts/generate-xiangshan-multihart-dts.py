@@ -4,7 +4,35 @@ import re
 from pathlib import Path
 
 
-MULTIHART_RISCV_ISA = "rv64imafdc"
+MULTIHART_RISCV_ISA = (
+    "rv64imafdcvh_smstateen_sscofpmf_sstc_zicntr_zihpm_svpbmt_"
+    "sdtrig_smcsrind_sscsrind_svade"
+)
+MULTIHART_CPU_ISA_PROPERTIES = f"""\
+\t\t\triscv,isa = "{MULTIHART_RISCV_ISA}";
+\t\t\triscv,isa-base = "rv64i";
+\t\t\triscv,isa-extensions =
+\t\t\t\t"i", "m", "a", "f", "d", "c", "v", "h",
+\t\t\t\t"sdtrig", "sha", "shcounterenw", "shgatpa",
+\t\t\t\t"shlcofideleg", "shtvala", "shvsatpa", "shvstvala",
+\t\t\t\t"shvstvecd", "smcsrind", "smdbltrp",
+\t\t\t\t"smmpm", "smnpm", "smrnmi", "smstateen",
+\t\t\t\t"ss1p13", "ssccptr", "sscofpmf",
+\t\t\t\t"sscounterenw", "sscsrind", "ssdbltrp", "ssnpm",
+\t\t\t\t"sspm", "ssstateen", "ssstrict", "sstc",
+\t\t\t\t"sstvala", "sstvecd", "ssu64xl", "supm",
+\t\t\t\t"sv39", "sv48", "svade", "svbare", "svinval",
+\t\t\t\t"svnapot", "svpbmt", "za64rs", "zacas", "zawrs",
+\t\t\t\t"zba", "zbb", "zbc", "zbkb", "zbkc", "zbkx",
+\t\t\t\t"zbs", "zca", "zcb", "zcmop", "zfa", "zfh", "zfhmin",
+\t\t\t\t"zic64b",
+\t\t\t\t"ziccamoa", "ziccif", "zicclsm", "ziccrse",
+\t\t\t\t"zicntr", "zicond", "zicsr", "zifencei",
+\t\t\t\t"zihintntl", "zihintpause", "zihpm", "zimop",
+\t\t\t\t"zkn", "zknd", "zkne", "zknh", "zksed",
+\t\t\t\t"zksh", "zkt", "zvbb", "zvfh", "zvfhmin",
+\t\t\t\t"zvkt", "zvl128b", "zvl32b", "zvl64b";
+"""
 MAX_HARTS = 128
 CHECKPOINT_RESERVED_NODE = """
 
@@ -57,7 +85,7 @@ def cpu_node(cpu0_node, hart):
 
 def normalize_cpu_isa(cpu_node_text):
     normalized, replacements = CPU_ISA_PROPERTIES.subn(
-        f'\t\t\triscv,isa = "{MULTIHART_RISCV_ISA}";\n', cpu_node_text, count=1
+        MULTIHART_CPU_ISA_PROPERTIES, cpu_node_text, count=1
     )
     if replacements != 1:
         raise RuntimeError("CPU node does not contain the expected ISA properties")

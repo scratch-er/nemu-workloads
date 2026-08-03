@@ -99,9 +99,15 @@ python3 scripts/generate-xiangshan-multihart-dts.py \
 
 `--harts` must be in the range 2 through 128. The generator copies the CPU node for each hart,
 extends the CLINT, PLIC, and debug interrupt contexts, and applies the NEMU
-UARTLITE and PLIC settings. It normalizes every generated CPU to
-`riscv,isa = "rv64imafdc"`. Generated multi-hart templates reserve the fixed
+UARTLITE and PLIC settings. Generated multi-hart templates reserve the fixed
 131 MiB checkpoint window `[0x80300000, 0x88600000)`.
+
+The full capability block describes XiangShan hardware and is not fully
+emulated by the current QEMU `nemu` machine. In particular, DT-advertised
+`smrnmi` requires an OpenSBI platform `smrnmi_handlers_init` callback, while
+the `nemu` timer path cannot execute the DT-advertised `sstc` CSR sequence.
+The current multi-core DTB must omit `smrnmi` and `sstc` and run with
+`sstc=false`.
 
 The build does not invoke this generator automatically. Run it and review the
 result before building with the corresponding `HARTS` value.

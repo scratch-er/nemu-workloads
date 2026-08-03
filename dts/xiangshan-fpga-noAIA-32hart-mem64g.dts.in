@@ -38,7 +38,7 @@
             riscv,cboz-block-size = <64>;
             riscv,isa = "rv64imafdcv_zicbom_zicboz";
             riscv,isa-base = "rv64i";
-            riscv,isa-extensions = "i", "m", "a", "f", "d", "c", "v", "supm", "zba", "zbb", "zbs", "zcb", "zcmop", "zfa", "zfhmin", "zicbop", "zicbom", "zicboz", "zicntr", "zicond", "zicsr", "zihpm", "zihintpause", "zihintntl", "zimop", "zkt", "zvbb", "zvfhmin", "zvkt";
+            riscv,isa-extensions = "i", "m", "a", "f", "d", "c", "v", "supm", "zba", "zbb", "zbs", "zca", "zcb", "zcmop", "zfa", "zfhmin", "zicbop", "zicbom", "zicboz", "zicntr", "zicond", "zicsr", "zihpm", "zihintpause", "zihintntl", "zimop", "zkt", "zvbb", "zvfhmin", "zvkt";
 
             cpu0_intc: interrupt-controller {
                 #interrupt-cells = <1>;
@@ -57,7 +57,7 @@
             riscv,cboz-block-size = <64>;
             riscv,isa = "rv64imafdcv_zicbom_zicboz";
             riscv,isa-base = "rv64i";
-            riscv,isa-extensions = "i", "m", "a", "f", "d", "c", "v", "supm", "zba", "zbb", "zbs", "zcb", "zcmop", "zfa", "zfhmin", "zicbop", "zicbom", "zicboz", "zicntr", "zicond", "zicsr", "zihpm", "zihintpause", "zihintntl", "zimop", "zkt", "zvbb", "zvfhmin", "zvkt";
+            riscv,isa-extensions = "i", "m", "a", "f", "d", "c", "v", "supm", "zba", "zbb", "zbs", "zca", "zcb", "zcmop", "zfa", "zfhmin", "zicbop", "zicbom", "zicboz", "zicntr", "zicond", "zicsr", "zihpm", "zihintpause", "zihintntl", "zimop", "zkt", "zvbb", "zvfhmin", "zvkt";
 
             cpu1_intc: interrupt-controller {
                 #interrupt-cells = <1>;
@@ -76,7 +76,7 @@
             riscv,cboz-block-size = <64>;
             riscv,isa = "rv64imafdcv_zicbom_zicboz";
             riscv,isa-base = "rv64i";
-            riscv,isa-extensions = "i", "m", "a", "f", "d", "c", "v", "supm", "zba", "zbb", "zbs", "zcb", "zcmop", "zfa", "zfhmin", "zicbop", "zicbom", "zicboz", "zicntr", "zicond", "zicsr", "zihpm", "zihintpause", "zihintntl", "zimop", "zkt", "zvbb", "zvfhmin", "zvkt";
+            riscv,isa-extensions = "i", "m", "a", "f", "d", "c", "v", "supm", "zba", "zbb", "zbs", "zca", "zcb", "zcmop", "zfa", "zfhmin", "zicbop", "zicbom", "zicboz", "zicntr", "zicond", "zicsr", "zihpm", "zihintpause", "zihintntl", "zimop", "zkt", "zvbb", "zvfhmin", "zvkt";
 
             cpu2_intc: interrupt-controller {
                 #interrupt-cells = <1>;
@@ -95,7 +95,7 @@
             riscv,cboz-block-size = <64>;
             riscv,isa = "rv64imafdcv_zicbom_zicboz";
             riscv,isa-base = "rv64i";
-            riscv,isa-extensions = "i", "m", "a", "f", "d", "c", "v", "supm", "zba", "zbb", "zbs", "zcb", "zcmop", "zfa", "zfhmin", "zicbop", "zicbom", "zicboz", "zicntr", "zicond", "zicsr", "zihpm", "zihintpause", "zihintntl", "zimop", "zkt", "zvbb", "zvfhmin", "zvkt";
+            riscv,isa-extensions = "i", "m", "a", "f", "d", "c", "v", "supm", "zba", "zbb", "zbs", "zca", "zcb", "zcmop", "zfa", "zfhmin", "zicbop", "zicbom", "zicboz", "zicntr", "zicond", "zicsr", "zihpm", "zihintpause", "zihintntl", "zimop", "zkt", "zvbb", "zvfhmin", "zvkt";
 
             cpu3_intc: interrupt-controller {
                 #interrupt-cells = <1>;
@@ -114,7 +114,7 @@
             riscv,cboz-block-size = <64>;
             riscv,isa = "rv64imafdcv_zicbom_zicboz";
             riscv,isa-base = "rv64i";
-            riscv,isa-extensions = "i", "m", "a", "f", "d", "c", "v", "supm", "zba", "zbb", "zbs", "zcb", "zcmop", "zfa", "zfhmin", "zicbop", "zicbom", "zicboz", "zicntr", "zicond", "zicsr", "zihpm", "zihintpause", "zihintntl", "zimop", "zkt", "zvbb", "zvfhmin", "zvkt";
+            riscv,isa-extensions = "i", "m", "a", "f", "d", "c", "v", "supm", "zba", "zbb", "zbs", "zca", "zcb", "zcmop", "zfa", "zfhmin", "zicbop", "zicbom", "zicboz", "zicntr", "zicond", "zicsr", "zihpm", "zihintpause", "zihintntl", "zimop", "zkt", "zvbb", "zvfhmin", "zvkt";
 
             cpu4_intc: interrupt-controller {
                 #interrupt-cells = <1>;
@@ -133,7 +133,7 @@
             riscv,cboz-block-size = <64>;
             riscv,isa = "rv64imafdcv_zicbom_zicboz";
             riscv,isa-base = "rv64i";
-            riscv,isa-extensions = "i", "m", "a", "f", "d", "c", "v", "supm", "zba", "zbb", "zbs", "zcb", "zcmop", "zfa", "zfhmin", "zicbop", "zicbom", "zicboz", "zicntr", "zicond", "zicsr", "zihpm", "zihintpause", "zihintntl", "zimop", "zkt", "zvbb", "zvfhmin", "zvkt";
+            riscv,isa-extensions = "i", "m", "a", "f", "d", "c", "v", "supm", "zba", "zbb", "zbs", "zca", "zcb", "zcmop", "zfa", "zfhmin", "zicbop", "zicbom", "zicboz", "zicntr", "zicond", "zicsr", "zihpm", "zihintpause", "zihintntl", "zimop", "zkt", "zvbb", "zvfhmin", "zvkt";
 
             cpu5_intc: interrupt-controller {
                 #interrupt-cells = <1>;
@@ -152,7 +152,7 @@
             riscv,cboz-block-size = <64>;
             riscv,isa = "rv64imafdcv_zicbom_zicboz";
             riscv,isa-base = "rv64i";
-            riscv,isa-extensions = "i", "m", "a", "f", "d", "c", "v", "supm", "zba", "zbb", "zbs", "zcb", "zcmop", "zfa", "zfhmin", "zicbop", "zicbom", "zicboz", "zicntr", "zicond", "zicsr", "zihpm", "zihintpause", "zihintntl", "zimop", "zkt", "zvbb", "zvfhmin", "zvkt";
+            riscv,isa-extensions = "i", "m", "a", "f", "d", "c", "v", "supm", "zba", "zbb", "zbs", "zca", "zcb", "zcmop", "zfa", "zfhmin", "zicbop", "zicbom", "zicboz", "zicntr", "zicond", "zicsr", "zihpm", "zihintpause", "zihintntl", "zimop", "zkt", "zvbb", "zvfhmin", "zvkt";
 
             cpu6_intc: interrupt-controller {
                 #interrupt-cells = <1>;
@@ -171,7 +171,7 @@
             riscv,cboz-block-size = <64>;
             riscv,isa = "rv64imafdcv_zicbom_zicboz";
             riscv,isa-base = "rv64i";
-            riscv,isa-extensions = "i", "m", "a", "f", "d", "c", "v", "supm", "zba", "zbb", "zbs", "zcb", "zcmop", "zfa", "zfhmin", "zicbop", "zicbom", "zicboz", "zicntr", "zicond", "zicsr", "zihpm", "zihintpause", "zihintntl", "zimop", "zkt", "zvbb", "zvfhmin", "zvkt";
+            riscv,isa-extensions = "i", "m", "a", "f", "d", "c", "v", "supm", "zba", "zbb", "zbs", "zca", "zcb", "zcmop", "zfa", "zfhmin", "zicbop", "zicbom", "zicboz", "zicntr", "zicond", "zicsr", "zihpm", "zihintpause", "zihintntl", "zimop", "zkt", "zvbb", "zvfhmin", "zvkt";
 
             cpu7_intc: interrupt-controller {
                 #interrupt-cells = <1>;
@@ -190,7 +190,7 @@
             riscv,cboz-block-size = <64>;
             riscv,isa = "rv64imafdcv_zicbom_zicboz";
             riscv,isa-base = "rv64i";
-            riscv,isa-extensions = "i", "m", "a", "f", "d", "c", "v", "supm", "zba", "zbb", "zbs", "zcb", "zcmop", "zfa", "zfhmin", "zicbop", "zicbom", "zicboz", "zicntr", "zicond", "zicsr", "zihpm", "zihintpause", "zihintntl", "zimop", "zkt", "zvbb", "zvfhmin", "zvkt";
+            riscv,isa-extensions = "i", "m", "a", "f", "d", "c", "v", "supm", "zba", "zbb", "zbs", "zca", "zcb", "zcmop", "zfa", "zfhmin", "zicbop", "zicbom", "zicboz", "zicntr", "zicond", "zicsr", "zihpm", "zihintpause", "zihintntl", "zimop", "zkt", "zvbb", "zvfhmin", "zvkt";
 
             cpu8_intc: interrupt-controller {
                 #interrupt-cells = <1>;
@@ -209,7 +209,7 @@
             riscv,cboz-block-size = <64>;
             riscv,isa = "rv64imafdcv_zicbom_zicboz";
             riscv,isa-base = "rv64i";
-            riscv,isa-extensions = "i", "m", "a", "f", "d", "c", "v", "supm", "zba", "zbb", "zbs", "zcb", "zcmop", "zfa", "zfhmin", "zicbop", "zicbom", "zicboz", "zicntr", "zicond", "zicsr", "zihpm", "zihintpause", "zihintntl", "zimop", "zkt", "zvbb", "zvfhmin", "zvkt";
+            riscv,isa-extensions = "i", "m", "a", "f", "d", "c", "v", "supm", "zba", "zbb", "zbs", "zca", "zcb", "zcmop", "zfa", "zfhmin", "zicbop", "zicbom", "zicboz", "zicntr", "zicond", "zicsr", "zihpm", "zihintpause", "zihintntl", "zimop", "zkt", "zvbb", "zvfhmin", "zvkt";
 
             cpu9_intc: interrupt-controller {
                 #interrupt-cells = <1>;
@@ -228,7 +228,7 @@
             riscv,cboz-block-size = <64>;
             riscv,isa = "rv64imafdcv_zicbom_zicboz";
             riscv,isa-base = "rv64i";
-            riscv,isa-extensions = "i", "m", "a", "f", "d", "c", "v", "supm", "zba", "zbb", "zbs", "zcb", "zcmop", "zfa", "zfhmin", "zicbop", "zicbom", "zicboz", "zicntr", "zicond", "zicsr", "zihpm", "zihintpause", "zihintntl", "zimop", "zkt", "zvbb", "zvfhmin", "zvkt";
+            riscv,isa-extensions = "i", "m", "a", "f", "d", "c", "v", "supm", "zba", "zbb", "zbs", "zca", "zcb", "zcmop", "zfa", "zfhmin", "zicbop", "zicbom", "zicboz", "zicntr", "zicond", "zicsr", "zihpm", "zihintpause", "zihintntl", "zimop", "zkt", "zvbb", "zvfhmin", "zvkt";
 
             cpu10_intc: interrupt-controller {
                 #interrupt-cells = <1>;
@@ -247,7 +247,7 @@
             riscv,cboz-block-size = <64>;
             riscv,isa = "rv64imafdcv_zicbom_zicboz";
             riscv,isa-base = "rv64i";
-            riscv,isa-extensions = "i", "m", "a", "f", "d", "c", "v", "supm", "zba", "zbb", "zbs", "zcb", "zcmop", "zfa", "zfhmin", "zicbop", "zicbom", "zicboz", "zicntr", "zicond", "zicsr", "zihpm", "zihintpause", "zihintntl", "zimop", "zkt", "zvbb", "zvfhmin", "zvkt";
+            riscv,isa-extensions = "i", "m", "a", "f", "d", "c", "v", "supm", "zba", "zbb", "zbs", "zca", "zcb", "zcmop", "zfa", "zfhmin", "zicbop", "zicbom", "zicboz", "zicntr", "zicond", "zicsr", "zihpm", "zihintpause", "zihintntl", "zimop", "zkt", "zvbb", "zvfhmin", "zvkt";
 
             cpu11_intc: interrupt-controller {
                 #interrupt-cells = <1>;
@@ -266,7 +266,7 @@
             riscv,cboz-block-size = <64>;
             riscv,isa = "rv64imafdcv_zicbom_zicboz";
             riscv,isa-base = "rv64i";
-            riscv,isa-extensions = "i", "m", "a", "f", "d", "c", "v", "supm", "zba", "zbb", "zbs", "zcb", "zcmop", "zfa", "zfhmin", "zicbop", "zicbom", "zicboz", "zicntr", "zicond", "zicsr", "zihpm", "zihintpause", "zihintntl", "zimop", "zkt", "zvbb", "zvfhmin", "zvkt";
+            riscv,isa-extensions = "i", "m", "a", "f", "d", "c", "v", "supm", "zba", "zbb", "zbs", "zca", "zcb", "zcmop", "zfa", "zfhmin", "zicbop", "zicbom", "zicboz", "zicntr", "zicond", "zicsr", "zihpm", "zihintpause", "zihintntl", "zimop", "zkt", "zvbb", "zvfhmin", "zvkt";
 
             cpu12_intc: interrupt-controller {
                 #interrupt-cells = <1>;
@@ -285,7 +285,7 @@
             riscv,cboz-block-size = <64>;
             riscv,isa = "rv64imafdcv_zicbom_zicboz";
             riscv,isa-base = "rv64i";
-            riscv,isa-extensions = "i", "m", "a", "f", "d", "c", "v", "supm", "zba", "zbb", "zbs", "zcb", "zcmop", "zfa", "zfhmin", "zicbop", "zicbom", "zicboz", "zicntr", "zicond", "zicsr", "zihpm", "zihintpause", "zihintntl", "zimop", "zkt", "zvbb", "zvfhmin", "zvkt";
+            riscv,isa-extensions = "i", "m", "a", "f", "d", "c", "v", "supm", "zba", "zbb", "zbs", "zca", "zcb", "zcmop", "zfa", "zfhmin", "zicbop", "zicbom", "zicboz", "zicntr", "zicond", "zicsr", "zihpm", "zihintpause", "zihintntl", "zimop", "zkt", "zvbb", "zvfhmin", "zvkt";
 
             cpu13_intc: interrupt-controller {
                 #interrupt-cells = <1>;
@@ -304,7 +304,7 @@
             riscv,cboz-block-size = <64>;
             riscv,isa = "rv64imafdcv_zicbom_zicboz";
             riscv,isa-base = "rv64i";
-            riscv,isa-extensions = "i", "m", "a", "f", "d", "c", "v", "supm", "zba", "zbb", "zbs", "zcb", "zcmop", "zfa", "zfhmin", "zicbop", "zicbom", "zicboz", "zicntr", "zicond", "zicsr", "zihpm", "zihintpause", "zihintntl", "zimop", "zkt", "zvbb", "zvfhmin", "zvkt";
+            riscv,isa-extensions = "i", "m", "a", "f", "d", "c", "v", "supm", "zba", "zbb", "zbs", "zca", "zcb", "zcmop", "zfa", "zfhmin", "zicbop", "zicbom", "zicboz", "zicntr", "zicond", "zicsr", "zihpm", "zihintpause", "zihintntl", "zimop", "zkt", "zvbb", "zvfhmin", "zvkt";
 
             cpu14_intc: interrupt-controller {
                 #interrupt-cells = <1>;
@@ -323,7 +323,7 @@
             riscv,cboz-block-size = <64>;
             riscv,isa = "rv64imafdcv_zicbom_zicboz";
             riscv,isa-base = "rv64i";
-            riscv,isa-extensions = "i", "m", "a", "f", "d", "c", "v", "supm", "zba", "zbb", "zbs", "zcb", "zcmop", "zfa", "zfhmin", "zicbop", "zicbom", "zicboz", "zicntr", "zicond", "zicsr", "zihpm", "zihintpause", "zihintntl", "zimop", "zkt", "zvbb", "zvfhmin", "zvkt";
+            riscv,isa-extensions = "i", "m", "a", "f", "d", "c", "v", "supm", "zba", "zbb", "zbs", "zca", "zcb", "zcmop", "zfa", "zfhmin", "zicbop", "zicbom", "zicboz", "zicntr", "zicond", "zicsr", "zihpm", "zihintpause", "zihintntl", "zimop", "zkt", "zvbb", "zvfhmin", "zvkt";
 
             cpu15_intc: interrupt-controller {
                 #interrupt-cells = <1>;
@@ -342,7 +342,7 @@
             riscv,cboz-block-size = <64>;
             riscv,isa = "rv64imafdcv_zicbom_zicboz";
             riscv,isa-base = "rv64i";
-            riscv,isa-extensions = "i", "m", "a", "f", "d", "c", "v", "supm", "zba", "zbb", "zbs", "zcb", "zcmop", "zfa", "zfhmin", "zicbop", "zicbom", "zicboz", "zicntr", "zicond", "zicsr", "zihpm", "zihintpause", "zihintntl", "zimop", "zkt", "zvbb", "zvfhmin", "zvkt";
+            riscv,isa-extensions = "i", "m", "a", "f", "d", "c", "v", "supm", "zba", "zbb", "zbs", "zca", "zcb", "zcmop", "zfa", "zfhmin", "zicbop", "zicbom", "zicboz", "zicntr", "zicond", "zicsr", "zihpm", "zihintpause", "zihintntl", "zimop", "zkt", "zvbb", "zvfhmin", "zvkt";
 
             cpu16_intc: interrupt-controller {
                 #interrupt-cells = <1>;
@@ -361,7 +361,7 @@
             riscv,cboz-block-size = <64>;
             riscv,isa = "rv64imafdcv_zicbom_zicboz";
             riscv,isa-base = "rv64i";
-            riscv,isa-extensions = "i", "m", "a", "f", "d", "c", "v", "supm", "zba", "zbb", "zbs", "zcb", "zcmop", "zfa", "zfhmin", "zicbop", "zicbom", "zicboz", "zicntr", "zicond", "zicsr", "zihpm", "zihintpause", "zihintntl", "zimop", "zkt", "zvbb", "zvfhmin", "zvkt";
+            riscv,isa-extensions = "i", "m", "a", "f", "d", "c", "v", "supm", "zba", "zbb", "zbs", "zca", "zcb", "zcmop", "zfa", "zfhmin", "zicbop", "zicbom", "zicboz", "zicntr", "zicond", "zicsr", "zihpm", "zihintpause", "zihintntl", "zimop", "zkt", "zvbb", "zvfhmin", "zvkt";
 
             cpu17_intc: interrupt-controller {
                 #interrupt-cells = <1>;
@@ -380,7 +380,7 @@
             riscv,cboz-block-size = <64>;
             riscv,isa = "rv64imafdcv_zicbom_zicboz";
             riscv,isa-base = "rv64i";
-            riscv,isa-extensions = "i", "m", "a", "f", "d", "c", "v", "supm", "zba", "zbb", "zbs", "zcb", "zcmop", "zfa", "zfhmin", "zicbop", "zicbom", "zicboz", "zicntr", "zicond", "zicsr", "zihpm", "zihintpause", "zihintntl", "zimop", "zkt", "zvbb", "zvfhmin", "zvkt";
+            riscv,isa-extensions = "i", "m", "a", "f", "d", "c", "v", "supm", "zba", "zbb", "zbs", "zca", "zcb", "zcmop", "zfa", "zfhmin", "zicbop", "zicbom", "zicboz", "zicntr", "zicond", "zicsr", "zihpm", "zihintpause", "zihintntl", "zimop", "zkt", "zvbb", "zvfhmin", "zvkt";
 
             cpu18_intc: interrupt-controller {
                 #interrupt-cells = <1>;
@@ -399,7 +399,7 @@
             riscv,cboz-block-size = <64>;
             riscv,isa = "rv64imafdcv_zicbom_zicboz";
             riscv,isa-base = "rv64i";
-            riscv,isa-extensions = "i", "m", "a", "f", "d", "c", "v", "supm", "zba", "zbb", "zbs", "zcb", "zcmop", "zfa", "zfhmin", "zicbop", "zicbom", "zicboz", "zicntr", "zicond", "zicsr", "zihpm", "zihintpause", "zihintntl", "zimop", "zkt", "zvbb", "zvfhmin", "zvkt";
+            riscv,isa-extensions = "i", "m", "a", "f", "d", "c", "v", "supm", "zba", "zbb", "zbs", "zca", "zcb", "zcmop", "zfa", "zfhmin", "zicbop", "zicbom", "zicboz", "zicntr", "zicond", "zicsr", "zihpm", "zihintpause", "zihintntl", "zimop", "zkt", "zvbb", "zvfhmin", "zvkt";
 
             cpu19_intc: interrupt-controller {
                 #interrupt-cells = <1>;
@@ -418,7 +418,7 @@
             riscv,cboz-block-size = <64>;
             riscv,isa = "rv64imafdcv_zicbom_zicboz";
             riscv,isa-base = "rv64i";
-            riscv,isa-extensions = "i", "m", "a", "f", "d", "c", "v", "supm", "zba", "zbb", "zbs", "zcb", "zcmop", "zfa", "zfhmin", "zicbop", "zicbom", "zicboz", "zicntr", "zicond", "zicsr", "zihpm", "zihintpause", "zihintntl", "zimop", "zkt", "zvbb", "zvfhmin", "zvkt";
+            riscv,isa-extensions = "i", "m", "a", "f", "d", "c", "v", "supm", "zba", "zbb", "zbs", "zca", "zcb", "zcmop", "zfa", "zfhmin", "zicbop", "zicbom", "zicboz", "zicntr", "zicond", "zicsr", "zihpm", "zihintpause", "zihintntl", "zimop", "zkt", "zvbb", "zvfhmin", "zvkt";
 
             cpu20_intc: interrupt-controller {
                 #interrupt-cells = <1>;
@@ -437,7 +437,7 @@
             riscv,cboz-block-size = <64>;
             riscv,isa = "rv64imafdcv_zicbom_zicboz";
             riscv,isa-base = "rv64i";
-            riscv,isa-extensions = "i", "m", "a", "f", "d", "c", "v", "supm", "zba", "zbb", "zbs", "zcb", "zcmop", "zfa", "zfhmin", "zicbop", "zicbom", "zicboz", "zicntr", "zicond", "zicsr", "zihpm", "zihintpause", "zihintntl", "zimop", "zkt", "zvbb", "zvfhmin", "zvkt";
+            riscv,isa-extensions = "i", "m", "a", "f", "d", "c", "v", "supm", "zba", "zbb", "zbs", "zca", "zcb", "zcmop", "zfa", "zfhmin", "zicbop", "zicbom", "zicboz", "zicntr", "zicond", "zicsr", "zihpm", "zihintpause", "zihintntl", "zimop", "zkt", "zvbb", "zvfhmin", "zvkt";
 
             cpu21_intc: interrupt-controller {
                 #interrupt-cells = <1>;
@@ -456,7 +456,7 @@
             riscv,cboz-block-size = <64>;
             riscv,isa = "rv64imafdcv_zicbom_zicboz";
             riscv,isa-base = "rv64i";
-            riscv,isa-extensions = "i", "m", "a", "f", "d", "c", "v", "supm", "zba", "zbb", "zbs", "zcb", "zcmop", "zfa", "zfhmin", "zicbop", "zicbom", "zicboz", "zicntr", "zicond", "zicsr", "zihpm", "zihintpause", "zihintntl", "zimop", "zkt", "zvbb", "zvfhmin", "zvkt";
+            riscv,isa-extensions = "i", "m", "a", "f", "d", "c", "v", "supm", "zba", "zbb", "zbs", "zca", "zcb", "zcmop", "zfa", "zfhmin", "zicbop", "zicbom", "zicboz", "zicntr", "zicond", "zicsr", "zihpm", "zihintpause", "zihintntl", "zimop", "zkt", "zvbb", "zvfhmin", "zvkt";
 
             cpu22_intc: interrupt-controller {
                 #interrupt-cells = <1>;
@@ -475,7 +475,7 @@
             riscv,cboz-block-size = <64>;
             riscv,isa = "rv64imafdcv_zicbom_zicboz";
             riscv,isa-base = "rv64i";
-            riscv,isa-extensions = "i", "m", "a", "f", "d", "c", "v", "supm", "zba", "zbb", "zbs", "zcb", "zcmop", "zfa", "zfhmin", "zicbop", "zicbom", "zicboz", "zicntr", "zicond", "zicsr", "zihpm", "zihintpause", "zihintntl", "zimop", "zkt", "zvbb", "zvfhmin", "zvkt";
+            riscv,isa-extensions = "i", "m", "a", "f", "d", "c", "v", "supm", "zba", "zbb", "zbs", "zca", "zcb", "zcmop", "zfa", "zfhmin", "zicbop", "zicbom", "zicboz", "zicntr", "zicond", "zicsr", "zihpm", "zihintpause", "zihintntl", "zimop", "zkt", "zvbb", "zvfhmin", "zvkt";
 
             cpu23_intc: interrupt-controller {
                 #interrupt-cells = <1>;
@@ -494,7 +494,7 @@
             riscv,cboz-block-size = <64>;
             riscv,isa = "rv64imafdcv_zicbom_zicboz";
             riscv,isa-base = "rv64i";
-            riscv,isa-extensions = "i", "m", "a", "f", "d", "c", "v", "supm", "zba", "zbb", "zbs", "zcb", "zcmop", "zfa", "zfhmin", "zicbop", "zicbom", "zicboz", "zicntr", "zicond", "zicsr", "zihpm", "zihintpause", "zihintntl", "zimop", "zkt", "zvbb", "zvfhmin", "zvkt";
+            riscv,isa-extensions = "i", "m", "a", "f", "d", "c", "v", "supm", "zba", "zbb", "zbs", "zca", "zcb", "zcmop", "zfa", "zfhmin", "zicbop", "zicbom", "zicboz", "zicntr", "zicond", "zicsr", "zihpm", "zihintpause", "zihintntl", "zimop", "zkt", "zvbb", "zvfhmin", "zvkt";
 
             cpu24_intc: interrupt-controller {
                 #interrupt-cells = <1>;
@@ -513,7 +513,7 @@
             riscv,cboz-block-size = <64>;
             riscv,isa = "rv64imafdcv_zicbom_zicboz";
             riscv,isa-base = "rv64i";
-            riscv,isa-extensions = "i", "m", "a", "f", "d", "c", "v", "supm", "zba", "zbb", "zbs", "zcb", "zcmop", "zfa", "zfhmin", "zicbop", "zicbom", "zicboz", "zicntr", "zicond", "zicsr", "zihpm", "zihintpause", "zihintntl", "zimop", "zkt", "zvbb", "zvfhmin", "zvkt";
+            riscv,isa-extensions = "i", "m", "a", "f", "d", "c", "v", "supm", "zba", "zbb", "zbs", "zca", "zcb", "zcmop", "zfa", "zfhmin", "zicbop", "zicbom", "zicboz", "zicntr", "zicond", "zicsr", "zihpm", "zihintpause", "zihintntl", "zimop", "zkt", "zvbb", "zvfhmin", "zvkt";
 
             cpu25_intc: interrupt-controller {
                 #interrupt-cells = <1>;
@@ -532,7 +532,7 @@
             riscv,cboz-block-size = <64>;
             riscv,isa = "rv64imafdcv_zicbom_zicboz";
             riscv,isa-base = "rv64i";
-            riscv,isa-extensions = "i", "m", "a", "f", "d", "c", "v", "supm", "zba", "zbb", "zbs", "zcb", "zcmop", "zfa", "zfhmin", "zicbop", "zicbom", "zicboz", "zicntr", "zicond", "zicsr", "zihpm", "zihintpause", "zihintntl", "zimop", "zkt", "zvbb", "zvfhmin", "zvkt";
+            riscv,isa-extensions = "i", "m", "a", "f", "d", "c", "v", "supm", "zba", "zbb", "zbs", "zca", "zcb", "zcmop", "zfa", "zfhmin", "zicbop", "zicbom", "zicboz", "zicntr", "zicond", "zicsr", "zihpm", "zihintpause", "zihintntl", "zimop", "zkt", "zvbb", "zvfhmin", "zvkt";
 
             cpu26_intc: interrupt-controller {
                 #interrupt-cells = <1>;
@@ -551,7 +551,7 @@
             riscv,cboz-block-size = <64>;
             riscv,isa = "rv64imafdcv_zicbom_zicboz";
             riscv,isa-base = "rv64i";
-            riscv,isa-extensions = "i", "m", "a", "f", "d", "c", "v", "supm", "zba", "zbb", "zbs", "zcb", "zcmop", "zfa", "zfhmin", "zicbop", "zicbom", "zicboz", "zicntr", "zicond", "zicsr", "zihpm", "zihintpause", "zihintntl", "zimop", "zkt", "zvbb", "zvfhmin", "zvkt";
+            riscv,isa-extensions = "i", "m", "a", "f", "d", "c", "v", "supm", "zba", "zbb", "zbs", "zca", "zcb", "zcmop", "zfa", "zfhmin", "zicbop", "zicbom", "zicboz", "zicntr", "zicond", "zicsr", "zihpm", "zihintpause", "zihintntl", "zimop", "zkt", "zvbb", "zvfhmin", "zvkt";
 
             cpu27_intc: interrupt-controller {
                 #interrupt-cells = <1>;
@@ -570,7 +570,7 @@
             riscv,cboz-block-size = <64>;
             riscv,isa = "rv64imafdcv_zicbom_zicboz";
             riscv,isa-base = "rv64i";
-            riscv,isa-extensions = "i", "m", "a", "f", "d", "c", "v", "supm", "zba", "zbb", "zbs", "zcb", "zcmop", "zfa", "zfhmin", "zicbop", "zicbom", "zicboz", "zicntr", "zicond", "zicsr", "zihpm", "zihintpause", "zihintntl", "zimop", "zkt", "zvbb", "zvfhmin", "zvkt";
+            riscv,isa-extensions = "i", "m", "a", "f", "d", "c", "v", "supm", "zba", "zbb", "zbs", "zca", "zcb", "zcmop", "zfa", "zfhmin", "zicbop", "zicbom", "zicboz", "zicntr", "zicond", "zicsr", "zihpm", "zihintpause", "zihintntl", "zimop", "zkt", "zvbb", "zvfhmin", "zvkt";
 
             cpu28_intc: interrupt-controller {
                 #interrupt-cells = <1>;
@@ -589,7 +589,7 @@
             riscv,cboz-block-size = <64>;
             riscv,isa = "rv64imafdcv_zicbom_zicboz";
             riscv,isa-base = "rv64i";
-            riscv,isa-extensions = "i", "m", "a", "f", "d", "c", "v", "supm", "zba", "zbb", "zbs", "zcb", "zcmop", "zfa", "zfhmin", "zicbop", "zicbom", "zicboz", "zicntr", "zicond", "zicsr", "zihpm", "zihintpause", "zihintntl", "zimop", "zkt", "zvbb", "zvfhmin", "zvkt";
+            riscv,isa-extensions = "i", "m", "a", "f", "d", "c", "v", "supm", "zba", "zbb", "zbs", "zca", "zcb", "zcmop", "zfa", "zfhmin", "zicbop", "zicbom", "zicboz", "zicntr", "zicond", "zicsr", "zihpm", "zihintpause", "zihintntl", "zimop", "zkt", "zvbb", "zvfhmin", "zvkt";
 
             cpu29_intc: interrupt-controller {
                 #interrupt-cells = <1>;
@@ -608,7 +608,7 @@
             riscv,cboz-block-size = <64>;
             riscv,isa = "rv64imafdcv_zicbom_zicboz";
             riscv,isa-base = "rv64i";
-            riscv,isa-extensions = "i", "m", "a", "f", "d", "c", "v", "supm", "zba", "zbb", "zbs", "zcb", "zcmop", "zfa", "zfhmin", "zicbop", "zicbom", "zicboz", "zicntr", "zicond", "zicsr", "zihpm", "zihintpause", "zihintntl", "zimop", "zkt", "zvbb", "zvfhmin", "zvkt";
+            riscv,isa-extensions = "i", "m", "a", "f", "d", "c", "v", "supm", "zba", "zbb", "zbs", "zca", "zcb", "zcmop", "zfa", "zfhmin", "zicbop", "zicbom", "zicboz", "zicntr", "zicond", "zicsr", "zihpm", "zihintpause", "zihintntl", "zimop", "zkt", "zvbb", "zvfhmin", "zvkt";
 
             cpu30_intc: interrupt-controller {
                 #interrupt-cells = <1>;
@@ -627,7 +627,7 @@
             riscv,cboz-block-size = <64>;
             riscv,isa = "rv64imafdcv_zicbom_zicboz";
             riscv,isa-base = "rv64i";
-            riscv,isa-extensions = "i", "m", "a", "f", "d", "c", "v", "supm", "zba", "zbb", "zbs", "zcb", "zcmop", "zfa", "zfhmin", "zicbop", "zicbom", "zicboz", "zicntr", "zicond", "zicsr", "zihpm", "zihintpause", "zihintntl", "zimop", "zkt", "zvbb", "zvfhmin", "zvkt";
+            riscv,isa-extensions = "i", "m", "a", "f", "d", "c", "v", "supm", "zba", "zbb", "zbs", "zca", "zcb", "zcmop", "zfa", "zfhmin", "zicbop", "zicbom", "zicboz", "zicntr", "zicond", "zicsr", "zihpm", "zihintpause", "zihintntl", "zimop", "zkt", "zvbb", "zvfhmin", "zvkt";
 
             cpu31_intc: interrupt-controller {
                 #interrupt-cells = <1>;

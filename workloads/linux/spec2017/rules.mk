@@ -33,6 +33,7 @@ SPEC2017_SPEED_DTB_MEMORY ?= 24g
 SPEC2017_DTB_MEMORY ?=
 SPEC2017_RATE_DTB_MIN_MEMORY_BYTES ?= 8589934592
 SPEC2017_SPEED_DTB_MIN_MEMORY_BYTES ?= 25769803776
+override SPEC2017_MULTIHART_DTB_REQUIRED_MIN_MEMORY_BYTES := 17179869184
 SPEC2017_PROFILING ?= $(if $(PROFILING),$(PROFILING),1)
 SPEC2017_TUNE ?= base
 SPEC2017_JOBS ?= $(shell nproc)
@@ -56,6 +57,7 @@ spec2017_case_dtb_profile = $(if $(SPEC2017_EXPLICIT_DEFAULT_DTB),,$(call spec20
 spec2017_case_dtb_name = $(if $(call spec2017_case_dtb_profile,$(1)),$(if $(filter %-novec,$(SPEC2017_DEFAULT_DTB)),$(patsubst %-novec,%,$(SPEC2017_DEFAULT_DTB))-mem$(call spec2017_case_dtb_profile,$(1))-novec,$(SPEC2017_DEFAULT_DTB)-mem$(call spec2017_case_dtb_profile,$(1))),$(SPEC2017_DEFAULT_DTB))
 spec2017_case_dtb_tag = $(subst /,_,$(call spec2017_case_dtb_name,$(1)))
 spec2017_case_dtb_min_memory_bytes = $(if $(findstring _speed_,$(1)),$(SPEC2017_SPEED_DTB_MIN_MEMORY_BYTES),$(SPEC2017_RATE_DTB_MIN_MEMORY_BYTES))
+spec2017_case_dtb_required_min_memory_bytes = $(if $(filter 1,$(SPEC2017_MULTIHART)),$(SPEC2017_MULTIHART_DTB_REQUIRED_MIN_MEMORY_BYTES),)
 spec2017_case_cfg = $(if $(SPEC2017_EXPLICIT_CFG),$(SPEC2017_CFG),$(if $(findstring _speed_,$(1)),$(SPEC2017_SPEED_CFG),$(SPEC2017_RATE_CFG)))
 spec2017_case_cfg_hash = $(shell if [ -f "$(abspath $(call spec2017_case_cfg,$(1)))" ]; then sha256sum "$(abspath $(call spec2017_case_cfg,$(1)))" | cut -d ' ' -f 1; else printf 'missing'; fi)
 SPEC2017_PYTHON := PYTHONDONTWRITEBYTECODE=1 python3
@@ -178,7 +180,8 @@ $(SPEC2017_BUILD_DIR)/$(1)/firmware/dtb-$(call spec2017_case_dtb_tag,$(1)).stamp
 		"case=$(1)" \
 		"default_dtb=$$(SPEC2017_DEFAULT_DTB)" \
 		"profile=$(call spec2017_case_dtb_profile,$(1))" \
-		"min_memory_bytes=$(call spec2017_case_dtb_min_memory_bytes,$(1))" > "$$@.tmp"
+		"min_memory_bytes=$(call spec2017_case_dtb_min_memory_bytes,$(1))" \
+		"required_min_memory_bytes=$(call spec2017_case_dtb_required_min_memory_bytes,$(1))" > "$$@.tmp"
 	@if [ -f "$$@" ] && cmp -s "$$@.tmp" "$$@"; then rm "$$@.tmp"; else mv "$$@.tmp" "$$@"; fi
 
 $(SPEC2017_BUILD_DIR)/$(1)/fw_payload.bin: $$(SPEC2017_DTS_SOURCES) $$(SPEC2017_GCPT_BIN) $$(SPEC2017_SCRIPTS_DIR)/build-firmware-linux.sh $(SPEC2017_BUILD_DIR)/$(1)/rootfs.cpio $$(SPEC2017_LINUX_IMAGE) $$(SPEC2017_SBI_BIN) $(SPEC2017_BUILD_DIR)/$(1)/firmware/dtb-$(call spec2017_case_dtb_tag,$(1)).stamp
@@ -188,6 +191,7 @@ $(SPEC2017_BUILD_DIR)/$(1)/fw_payload.bin: $$(SPEC2017_DTS_SOURCES) $$(SPEC2017_
 	DEFAULT_DTB="$$(SPEC2017_DEFAULT_DTB)" \
 	DTB_MEMORY_PROFILE="$(call spec2017_case_dtb_profile,$(1))" \
 	DTB_MIN_MEMORY_BYTES="$(call spec2017_case_dtb_min_memory_bytes,$(1))" \
+	DTB_REQUIRED_MIN_MEMORY_BYTES="$(call spec2017_case_dtb_required_min_memory_bytes,$(1))" \
 	MULTIHART="$$(SPEC2017_MULTIHART)" \
 	HARTS="$$(SPEC2017_HARTS)" \
 	SPEC2017_PROGRESS_K="$$(SPEC2017_PROGRESS_K)" \
@@ -230,6 +234,7 @@ $(SPEC2017_IMAGE_DIR)/stamps/$(1).images.stamp: $(SPEC2017_PREPARE_STAMP) $(SPEC
 		DEFAULT_DTB="$$(SPEC2017_DEFAULT_DTB)" \
 		DTB_MEMORY_PROFILE="$(call spec2017_case_dtb_profile,$(1))" \
 		DTB_MIN_MEMORY_BYTES="$(call spec2017_case_dtb_min_memory_bytes,$(1))" \
+		DTB_REQUIRED_MIN_MEMORY_BYTES="$(call spec2017_case_dtb_required_min_memory_bytes,$(1))" \
 		MULTIHART="$$(SPEC2017_MULTIHART)" \
 		HARTS="$$(SPEC2017_HARTS)" \
 		SPEC2017_PROGRESS_K="$$(SPEC2017_PROGRESS_K)" \

@@ -33,7 +33,7 @@ matching multi-hart DTS template explicitly:
 make linux/spec2017 BENCH=mcf MODE=rate INPUT=ref \
   SPEC2017_ISO=/path/to/cpu2017.iso \
   MULTIHART=1 HARTS=2 \
-  DEFAULT_DTB=xiangshan-fpga-noAIA-2hart-mem8g -jN
+  DEFAULT_DTB=xiangshan-fpga-noAIA-2hart-mem16g -jN
 ```
 
 The same options apply to split image exports:
@@ -42,7 +42,7 @@ The same options apply to split image exports:
 make spec2017-images BENCH=mcf MODE=rate INPUT=ref \
   SPEC2017_ISO=/path/to/cpu2017.iso \
   MULTIHART=1 HARTS=2 \
-  DEFAULT_DTB=xiangshan-fpga-noAIA-2hart-mem8g -jN
+  DEFAULT_DTB=xiangshan-fpga-noAIA-2hart-mem16g -jN
 ```
 
 The package step creates `/spec0` through `/spec<N-1>` and starts one copy on
@@ -51,10 +51,11 @@ each hart through `/spec_common/launch_multihart.sh`. Each hart uses its own
 the launcher reports the aggregate exit status.
 
 `DEFAULT_DTB` is required for multi-hart builds and must be the complete DTS
-basename without `.dts.in`. Its CPU count must match `HARTS`. SPEC2017 also
-retains its memory-size checks: rate cases require at least 8 GiB and speed
-cases require at least 24 GiB, so select or generate a matching multi-hart
-template with sufficient memory.
+basename without `.dts.in`. Its CPU count must match `HARTS`. Every multi-hart
+SPEC2017 DTB must describe at least 16 GiB. The existing mode checks still
+apply as well: rate cases require at least 8 GiB and speed cases require at
+least 24 GiB. Thus `xiangshan-fpga-noAIA-2hart-mem16g` is valid for rate mode;
+speed mode still needs a larger profile such as 24 GiB.
 
 The ISO is extracted and installed through a temporary local staging directory,
 then copied into the writable workspace
@@ -199,7 +200,9 @@ make linux/spec2017 BENCH=x264 MODE=speed INPUT=ref \
   SPEC2017_ISO=/path/to/cpu2017.iso -jN
 ```
 
-The minimum checked size is 8 GiB for rate cases and 24 GiB for speed cases.
+The mode-specific minimum is 8 GiB for rate cases and 24 GiB for speed cases.
+Multi-hart builds additionally require at least 16 GiB, so both checks must
+pass.
 
 The source templates live in:
 

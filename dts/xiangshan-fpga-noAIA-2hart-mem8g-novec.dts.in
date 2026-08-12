@@ -43,10 +43,10 @@
 			 * workload template while using the FPGA board interrupt/peripheral
 			 * map below.
 			 */
-			riscv,isa = "rv64imafdcvh_smstateen_sscofpmf_zicntr_zihpm_svpbmt_sdtrig_smcsrind_sscsrind_svade";
+			riscv,isa = "rv64imafdch_smstateen_sscofpmf_zicntr_zihpm_svpbmt_sdtrig_smcsrind_sscsrind_svade";
 			riscv,isa-base = "rv64i";
 			riscv,isa-extensions =
-				"i", "m", "a", "f", "d", "c", "v", "h",
+				"i", "m", "a", "f", "d", "c", "h",
 				"sdtrig", "sha", "shcounterenw", "shgatpa",
 				"shlcofideleg", "shtvala", "shvsatpa", "shvstvala",
 				"shvstvecd", "smcsrind", "smdbltrp",
@@ -64,8 +64,7 @@
 				"zicntr", "zicond", "zicsr", "zifencei",
 				"zihintntl", "zihintpause", "zihpm", "zimop",
 				"zkn", "zknd", "zkne", "zknh", "zksed",
-				"zksh", "zkt", "zvbb", "zvfh", "zvfhmin",
-				"zvkt", "zvl128b", "zvl32b", "zvl64b";
+				"zksh", "zkt";
 			riscv,cbom-block-size = <0x40>;
 			riscv,cboz-block-size = <0x40>;
 
@@ -104,10 +103,10 @@
 			 * workload template while using the FPGA board interrupt/peripheral
 			 * map below.
 			 */
-			riscv,isa = "rv64imafdcvh_smstateen_sscofpmf_zicntr_zihpm_svpbmt_sdtrig_smcsrind_sscsrind_svade";
+			riscv,isa = "rv64imafdch_smstateen_sscofpmf_zicntr_zihpm_svpbmt_sdtrig_smcsrind_sscsrind_svade";
 			riscv,isa-base = "rv64i";
 			riscv,isa-extensions =
-				"i", "m", "a", "f", "d", "c", "v", "h",
+				"i", "m", "a", "f", "d", "c", "h",
 				"sdtrig", "sha", "shcounterenw", "shgatpa",
 				"shlcofideleg", "shtvala", "shvsatpa", "shvstvala",
 				"shvstvecd", "smcsrind", "smdbltrp",
@@ -125,8 +124,7 @@
 				"zicntr", "zicond", "zicsr", "zifencei",
 				"zihintntl", "zihintpause", "zihpm", "zimop",
 				"zkn", "zknd", "zkne", "zknh", "zksed",
-				"zksh", "zkt", "zvbb", "zvfh", "zvfhmin",
-				"zvkt", "zvl128b", "zvl32b", "zvl64b";
+				"zksh", "zkt";
 			riscv,cbom-block-size = <0x40>;
 			riscv,cboz-block-size = <0x40>;
 

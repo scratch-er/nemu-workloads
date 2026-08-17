@@ -75,7 +75,14 @@ standard templates retain these profiles:
 | Template | DRAM |
 |----------|------|
 | `xiangshan-fpga-noAIA-2hart-mem8g` | 8 GiB |
+| `xiangshan-fpga-noAIA-2hart-mem16g` | 16 GiB |
 | `xiangshan-fpga-noAIA-32hart-mem64g` | 64 GiB |
+
+`xiangshan-fpga-noAIA-mem16g-novec` is the single-hart Host profile for
+`virt/linux/*`. It disables AIA and vector advertisement, retains the H
+extension required by RISC-V KVM, and describes exactly 16 GiB of DRAM. The
+virtual build validates all three properties that affect nesting: one CPU, at
+least 16 GiB, and structured ISA extension `h`.
 
 Select the complete template basename explicitly when building, for example:
 
@@ -97,16 +104,29 @@ python3 scripts/generate-xiangshan-multihart-dts.py \
   --output dts/xiangshan-fpga-noAIA-2hart-mem8g.dts.in
 ```
 
-`--harts` must be in the range 2 through 128. The generator copies the CPU node for each hart,
-extends the CLINT, PLIC, and debug interrupt contexts, and applies the NEMU
-UARTLITE and PLIC settings. Generated multi-hart templates reserve the fixed
-131 MiB checkpoint window `[0x80300000, 0x88600000)`.
+Use `--memory-gib` to override the copied DRAM capacity. The checked-in 16 GiB
+two-hart profile is generated with:
+
+```shell
+python3 scripts/generate-xiangshan-multihart-dts.py \
+  --base dts/xiangshan-fpga-noAIA-mem8g.dts.in \
+  --harts 2 \
+  --memory-gib 16 \
+  --output dts/xiangshan-fpga-noAIA-2hart-mem16g.dts.in
+```
+
+`--harts` must be in the range 2 through 128, and `--memory-gib` must be a
+positive integer when specified. The generator copies the CPU node for each
+hart, extends the CLINT, PLIC, and debug interrupt contexts, and applies the
+NEMU UARTLITE and PLIC settings. Generated multi-hart templates reserve the
+fixed 131 MiB checkpoint window `[0x80300000, 0x88600000)`.
 
 The full capability block describes XiangShan hardware and is not fully
-emulated by the current QEMU `nemu` machine. In particular, DT-advertised
-`smrnmi` requires an OpenSBI platform `smrnmi_handlers_init` callback, while
-the `nemu` timer path cannot execute the DT-advertised `sstc` CSR sequence.
-The current multi-core DTB must omit `smrnmi` and `sstc` and run with
+emulated by the current generic OpenSBI/QEMU `nemu` path. In particular,
+DT-advertised `smrnmi` requires an OpenSBI platform
+`smrnmi_handlers_init` callback, so all generic-platform DTS templates omit
+it. The `nemu` timer path likewise cannot execute the DT-advertised `sstc` CSR
+sequence; multi-core diagnostic runs may need to omit `sstc` and use
 `sstc=false`.
 
 The build does not invoke this generator automatically. Run it and review the

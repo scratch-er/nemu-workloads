@@ -5,7 +5,7 @@ from pathlib import Path
 
 
 MULTIHART_RISCV_ISA = (
-    "rv64imafdcvh_smstateen_sscofpmf_sstc_zicntr_zihpm_svpbmt_"
+    "rv64imafdcvh_smstateen_sscofpmf_zicntr_zihpm_svpbmt_"
     "sdtrig_smcsrind_sscsrind_svade"
 )
 MULTIHART_CPU_ISA_PROPERTIES = f"""\
@@ -16,10 +16,10 @@ MULTIHART_CPU_ISA_PROPERTIES = f"""\
 \t\t\t\t"sdtrig", "sha", "shcounterenw", "shgatpa",
 \t\t\t\t"shlcofideleg", "shtvala", "shvsatpa", "shvstvala",
 \t\t\t\t"shvstvecd", "smcsrind", "smdbltrp",
-\t\t\t\t"smmpm", "smnpm", "smrnmi", "smstateen",
+\t\t\t\t"smmpm", "smnpm", "smstateen",
 \t\t\t\t"ss1p13", "ssccptr", "sscofpmf",
 \t\t\t\t"sscounterenw", "sscsrind", "ssdbltrp", "ssnpm",
-\t\t\t\t"sspm", "ssstateen", "ssstrict", "sstc",
+\t\t\t\t"sspm", "ssstateen", "ssstrict",
 \t\t\t\t"sstvala", "sstvecd", "ssu64xl", "supm",
 \t\t\t\t"sv39", "sv48", "svade", "svbare", "svinval",
 \t\t\t\t"svnapot", "svpbmt", "za64rs", "zacas", "zawrs",
@@ -58,6 +58,16 @@ def positive_harts(value):
     if not 2 <= harts <= MAX_HARTS:
         raise argparse.ArgumentTypeError(f"harts must be in the range 2..{MAX_HARTS}")
     return harts
+
+
+def positive_memory_gib(value):
+    try:
+        memory_gib = int(value, 0)
+    except ValueError as exc:
+        raise argparse.ArgumentTypeError("memory-gib must be an integer") from exc
+    if memory_gib <= 0:
+        raise argparse.ArgumentTypeError("memory-gib must be greater than zero")
+    return memory_gib
 
 
 def extract_node(text, node_header):
@@ -168,7 +178,35 @@ def add_checkpoint_reserved_memory(text):
     return text[:close] + CHECKPOINT_RESERVED_NODE + text[close:]
 
 
-def render(base_text, harts):
+def override_memory_profile(text, memory_gib):
+    start, end = extract_node(text, "\tmemory: memory@80000000 {")
+    memory_node = text[start:end]
+    memory_bytes = memory_gib << 30
+    size_high = memory_bytes >> 32
+    size_low = memory_bytes & 0xFFFFFFFF
+    if size_high > 0xFFFFFFFF:
+        raise RuntimeError("memory-gib does not fit in a 64-bit DTS size")
+
+    memory_node, comment_replacements = re.subn(
+        r"\t\t/\*\n(?:\t\t \*.*\n)+\t\t \*/(?=\n\t\treg)",
+        "\t\t/*\n"
+        f"\t\t * Static {memory_gib} GiB memory profile for multi-hart workloads.\n"
+        "\t\t */",
+        memory_node,
+        count=1,
+    )
+    memory_node, reg_replacements = re.subn(
+        r"reg = <0x0 0x80000000 0x[0-9a-fA-F]+ 0x[0-9a-fA-F]+>;",
+        f"reg = <0x0 0x80000000 0x{size_high:x} 0x{size_low:08x}>;",
+        memory_node,
+        count=1,
+    )
+    if comment_replacements != 1 or reg_replacements != 1:
+        raise RuntimeError("memory node does not contain the expected static profile")
+    return text[:start] + memory_node + text[end:]
+
+
+def render(base_text, harts, memory_gib=None):
     start, end = extract_node(base_text, "\t\tcpu0: cpu@0 {")
     cpu0_node = normalize_cpu_isa(base_text[start:end])
     extra_cpus = "".join("\n\n" + cpu_node(cpu0_node, hart) for hart in range(1, harts))
@@ -190,6 +228,8 @@ def render(base_text, harts):
     text = replace_fpga_uart_with_nemu_uartlite(text)
     text = sanitize_nemu_uart_comments(text)
     text = add_checkpoint_reserved_memory(text)
+    if memory_gib is not None:
+        text = override_memory_profile(text, memory_gib)
     return text
 
 
@@ -197,12 +237,15 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--base", required=True, type=Path)
     parser.add_argument("--harts", required=True, type=positive_harts)
+    parser.add_argument("--memory-gib", type=positive_memory_gib)
     parser.add_argument("--output", required=True, type=Path)
     args = parser.parse_args()
 
     base_text = args.base.read_text(encoding="utf-8")
     args.output.parent.mkdir(parents=True, exist_ok=True)
-    args.output.write_text(render(base_text, args.harts), encoding="utf-8")
+    args.output.write_text(
+        render(base_text, args.harts, memory_gib=args.memory_gib), encoding="utf-8"
+    )
 
 
 if __name__ == "__main__":

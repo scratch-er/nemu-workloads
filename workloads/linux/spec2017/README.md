@@ -113,7 +113,7 @@ build/images/<mode>/
   opensbi/fw_jump.elf
   opensbi/defconfig
   manifest/<variant>.json
-  cfg/riscv-gcc15.cfg
+  cfg/riscv-gcc16.cfg
 ```
 
 `<mode>` is `spec2017rate` for rate and `spec2017speed` for speed.
@@ -215,16 +215,16 @@ They are compiled into each case's `dt/` directory during firmware assembly.
 
 ## Configuration
 
-By default, rate cases use:
+By default, rate cases use the GCC 16 configuration:
 
 ```text
-workloads/linux/spec2017/configs/riscv-gcc15.cfg
+workloads/linux/spec2017/configs/riscv-gcc16.cfg
 ```
 
-Speed cases use:
+Speed cases use the same GCC 16 configuration:
 
 ```text
-workloads/linux/spec2017/configs/riscv-gcc15.cfg
+workloads/linux/spec2017/configs/riscv-gcc16.cfg
 ```
 
 Override both modes with `SPEC2017_CFG=/path/to/config.cfg`, or override the

@@ -165,10 +165,10 @@ make -f rules.mk spec2006-elfs SPEC2006_ISO=/path/to/cpu2006.iso SPEC2006_INPUT=
 
 ## Configuration
 
-The default SPEC cfg is the GCC 16 configuration:
+The default SPEC cfg is the GCC 16 RVA23U64 no-vector configuration:
 
 ```text
-workloads/linux/spec2006/configs/riscv_gcc16_base.cfg
+workloads/linux/spec2006/configs/gcc16-linux-riscv64-rva23u64_novec.cfg
 ```
 
 For GCC 15, select:
@@ -202,7 +202,7 @@ riscv64-unknown-linux-gnu-
 Override it with `SPEC2006_CROSS_COMPILE=/path/to/bin/riscv64-unknown-linux-gnu-`.
 
 The helper derives the toolchain root from `SPEC2006_CROSS_COMPILE` and exports
-the env vars expected by `riscv_gcc16_base.cfg` (or a custom config):
+the env vars expected by the default config (or a custom config):
 
 - `LLVM_INSTALL_PATH`
 - `GNU_RISCV64_PATH`

@@ -91,6 +91,16 @@ make spec2026-images SPEC2026_ISO=/path/to/cpu2026-1.0.1.iso SPEC2026_IMAGE_MODE
 `SPEC2026_IMAGE_MODE=all` exports both rate and speed images into the same
 combined tree that `SPEC2026_IMAGE_DIR` points to.
 
+## Configuration
+
+The default SPEC cfg is the GCC 16 RVA23U64 no-vector configuration:
+
+```text
+workloads/linux/spec2026/configs/riscv_gcc16_rva23u64_novec.cfg
+```
+
+Override it with `SPEC2026_CFG=/path/to/config.cfg`.
+
 The repository provides static `xiangshan-fpga-noAIA-novec` DTS templates for
 the SPEC2026 memory profiles used by default. The embedded DTB is selected per
 case:

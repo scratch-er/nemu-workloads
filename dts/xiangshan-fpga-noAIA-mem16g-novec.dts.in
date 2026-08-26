@@ -28,9 +28,24 @@
 			riscv,isa-base = "rv64i";
 			riscv,isa-extensions =
 				"i", "m", "a", "f", "d", "c", "h",
-				"smstateen", "sscofpmf", "sstc", "zaamo", "zalrsc", "zcd",
-				"zicbom", "zicbop", "zicboz", "zicntr", "zihpm",
-				"svpbmt", "sdtrig", "smcsrind", "sscsrind", "svade";
+				"sdtrig", "sha", "shcounterenw", "shgatpa",
+				"shlcofideleg", "shtvala", "shvsatpa", "shvstvala",
+				"shvstvecd", "smcsrind", "smdbltrp",
+				"smmpm", "smnpm", "smstateen",
+				"ss1p13", "ssccptr", "sscofpmf",
+				"sscounterenw", "sscsrind", "ssdbltrp", "ssnpm",
+				"sspm", "ssstateen", "ssstrict", "sstc",
+				"sstvala", "sstvecd", "ssu64xl", "supm",
+				"sv39", "sv48", "svade", "svbare", "svinval",
+				"svnapot", "svpbmt", "za64rs", "zaamo", "zalrsc", "zacas", "zawrs",
+				"zba", "zbb", "zbc", "zbkb", "zbkc", "zbkx",
+				"zbs", "zca", "zcb", "zcd", "zcmop", "zfa", "zfh", "zfhmin",
+				"zic64b", "zicbom", "zicbop", "zicboz",
+				"ziccamoa", "ziccif", "zicclsm", "ziccrse",
+				"zicntr", "zicond", "zicsr", "zifencei",
+				"zihintntl", "zihintpause", "zihpm", "zimop",
+				"zkn", "zknd", "zkne", "zknh", "zksed",
+				"zksh", "zkt";
 
 			intc_cpu0: interrupt-controller {
 				#interrupt-cells = <1>;

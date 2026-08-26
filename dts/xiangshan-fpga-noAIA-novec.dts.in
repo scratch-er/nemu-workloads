@@ -43,7 +43,7 @@
 			 * workload template while using the FPGA board interrupt/peripheral
 			 * map below.
 			 */
-			riscv,isa = "rv64imafdcvh_smstateen_sscofpmf_sstc_zicntr_zihpm_svpbmt_sdtrig_smcsrind_sscsrind_svade";
+			riscv,isa = "rv64imafdcvh_smstateen_sscofpmf_sstc_zaamo_zalrsc_zcd_zicbom_zicbop_zicboz_zicntr_zihpm_svpbmt_sdtrig_smcsrind_sscsrind_svade";
 			riscv,isa-base = "rv64i";
 			riscv,isa-extensions =
 				"i", "m", "a", "f", "d", "c", "h",
@@ -56,10 +56,10 @@
 				"sspm", "ssstateen", "ssstrict", "sstc",
 				"sstvala", "sstvecd", "ssu64xl", "supm",
 				"sv39", "sv48", "svade", "svbare", "svinval",
-				"svnapot", "svpbmt", "za64rs", "zacas", "zawrs",
+				"svnapot", "svpbmt", "za64rs", "zaamo", "zalrsc", "zacas", "zawrs",
 				"zba", "zbb", "zbc", "zbkb", "zbkc", "zbkx",
-				"zbs", "zca", "zcb", "zcmop", "zfa", "zfh", "zfhmin",
-				"zic64b",
+				"zbs", "zca", "zcb", "zcd", "zcmop", "zfa", "zfh", "zfhmin",
+				"zic64b", "zicbom", "zicbop", "zicboz",
 				"ziccamoa", "ziccif", "zicclsm", "ziccrse",
 				"zicntr", "zicond", "zicsr", "zifencei",
 				"zihintntl", "zihintpause", "zihpm", "zimop",

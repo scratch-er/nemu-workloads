@@ -5,7 +5,8 @@ from pathlib import Path
 
 
 MULTIHART_RISCV_ISA = (
-    "rv64imafdcvh_smstateen_sscofpmf_zicntr_zihpm_svpbmt_"
+    "rv64imafdcvh_smstateen_sscofpmf_zaamo_zalrsc_zcd_zicbom_zicbop_zicboz_"
+    "zicntr_zihpm_svpbmt_"
     "sdtrig_smcsrind_sscsrind_svade"
 )
 MULTIHART_CPU_ISA_PROPERTIES = f"""\
@@ -22,10 +23,10 @@ MULTIHART_CPU_ISA_PROPERTIES = f"""\
 \t\t\t\t"sspm", "ssstateen", "ssstrict",
 \t\t\t\t"sstvala", "sstvecd", "ssu64xl", "supm",
 \t\t\t\t"sv39", "sv48", "svade", "svbare", "svinval",
-\t\t\t\t"svnapot", "svpbmt", "za64rs", "zacas", "zawrs",
+\t\t\t\t"svnapot", "svpbmt", "za64rs", "zaamo", "zalrsc", "zacas", "zawrs",
 \t\t\t\t"zba", "zbb", "zbc", "zbkb", "zbkc", "zbkx",
-\t\t\t\t"zbs", "zca", "zcb", "zcmop", "zfa", "zfh", "zfhmin",
-\t\t\t\t"zic64b",
+\t\t\t\t"zbs", "zca", "zcb", "zcd", "zcmop", "zfa", "zfh", "zfhmin",
+\t\t\t\t"zic64b", "zicbom", "zicbop", "zicboz",
 \t\t\t\t"ziccamoa", "ziccif", "zicclsm", "ziccrse",
 \t\t\t\t"zicntr", "zicond", "zicsr", "zifencei",
 \t\t\t\t"zihintntl", "zihintpause", "zihpm", "zimop",

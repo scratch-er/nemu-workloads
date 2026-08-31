@@ -146,7 +146,7 @@ $(SPEC2006_BUILD_DIR)/$(1)/rootfs.cpio: $(SPEC2006_PREPARE_STAMP) $(SPEC2006_BUI
 	MULTIHART_PAYLOAD_DIR=spec \
 	bash "$$(SPEC2006_SCRIPTS_DIR)/build-workload-linux.sh" "$$(SPEC2006_WORKLOAD_DIR)" "$(SPEC2006_BUILD_DIR)/$(1)"
 
-$(SPEC2006_BUILD_DIR)/$(1)/fw_payload.bin: $$(SPEC2006_DTS_SOURCES) $$(SPEC2006_DEFAULT_DTB_STAMP) $$(SPEC2006_GCPT_BIN) $$(SPEC2006_SCRIPTS_DIR)/build-firmware-linux.sh $(SPEC2006_BUILD_DIR)/$(1)/rootfs.cpio $$(SPEC2006_LINUX_IMAGE) $$(SPEC2006_SBI_BIN)
+$(SPEC2006_BUILD_DIR)/$(1)/fw_payload.bin: $$(SPEC2006_DTS_SOURCES) $$(SPEC2006_DEFAULT_DTB_STAMP) $$(SPEC2006_GCPT_BIN) $$(SPEC2006_SCRIPTS_DIR)/build-firmware-linux.sh $$(SPEC2006_SCRIPTS_DIR)/dts-config.sh $(SPEC2006_BUILD_DIR)/$(1)/rootfs.cpio $$(SPEC2006_LINUX_IMAGE) $$(SPEC2006_SBI_BIN)
 	@printf '$(SPEC2006_PROGRESS_PREFIX) Assembling firmware for $(1)\n'
 	@CROSS_COMPILE="$$(SPEC2006_BUILDROOT_CROSS_COMPILE)" \
 	DTC="$$(SPEC2006_DTC)" \
@@ -161,7 +161,7 @@ linux/$(1): $(SPEC2006_BUILD_DIR)/$(1)/fw_payload.bin
 
 WORKLOAD_PHONY_TARGETS += linux/$(1)
 
-$(call spec2006_case_image_stamp,$(1)): $(SPEC2006_PREPARE_STAMP) $(SPEC2006_BUILD_DIR)/$(1)/fw_payload.bin $(SPEC2006_GCPT_ELF) $(SPEC2006_GCPT_BIN) $(SPEC2006_LINUX_IMAGE) $(SPEC2006_SBI_BIN) $$(SPEC2006_SCRIPTS_DIR)/export-linux-debug-artifacts.sh | spec2006-check-spec-iso
+$(call spec2006_case_image_stamp,$(1)): $(SPEC2006_PREPARE_STAMP) $(SPEC2006_BUILD_DIR)/$(1)/fw_payload.bin $(SPEC2006_GCPT_ELF) $(SPEC2006_GCPT_BIN) $(SPEC2006_LINUX_IMAGE) $(SPEC2006_SBI_BIN) $$(SPEC2006_SCRIPTS_DIR)/export-linux-debug-artifacts.sh $$(SPEC2006_SCRIPTS_DIR)/dts-config.sh | spec2006-check-spec-iso
 	@printf '$(SPEC2006_PROGRESS_PREFIX) Exporting $(1) artifacts to $(SPEC2006_IMAGE_DIR)\n'
 	@run_command="$(SPEC2006_BUILD_DIR)/$(1)/package/spec/run.sh"; \
 	if [ ! -f "$$$$run_command" ]; then run_command="$(SPEC2006_BUILD_DIR)/$(1)/package/spec_common/launch_multihart.sh"; fi; \
@@ -172,7 +172,7 @@ $(call spec2006_case_image_stamp,$(1)): $(SPEC2006_PREPARE_STAMP) $(SPEC2006_BUI
 	SPEC_CONFIG="$(SPEC2006_CFG)" \
 	GCPT_ELF="$(SPEC2006_GCPT_ELF)" \
 	GCPT_BIN="$(SPEC2006_GCPT_BIN)" \
-	bash "$(SPEC2006_SCRIPTS_DIR)/export-linux-debug-artifacts.sh" "$(SPEC2006_BUILDROOT_DIR)" "$(SPEC2006_SBI_BUILD_DIR)" "$(SPEC2006_BUILD_DIR)/$(1)" "$(SPEC2006_IMAGE_DIR)" "$(1)" "$(SPEC2006_DEFAULT_DTB)"
+	bash "$(SPEC2006_SCRIPTS_DIR)/export-linux-debug-artifacts.sh" "$(SPEC2006_BUILDROOT_DIR)" "$(SPEC2006_SBI_BUILD_DIR)" "$(SPEC2006_BUILD_DIR)/$(1)" "$(SPEC2006_IMAGE_DIR)" "$(1)" "$(SPEC2006_DEFAULT_DTB)" "$(SPEC2006_LINUX_IMAGE)"
 	@touch "$$@"
 endef
 

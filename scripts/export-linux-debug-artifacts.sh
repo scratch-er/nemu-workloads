@@ -7,12 +7,14 @@ WORKLOAD_BUILD_DIR="$(realpath "$3")"
 IMAGE_DIR="$(realpath -m "$4")"
 ARTIFACT_NAME="$5"
 DTB_BASENAME="$6"
+KERNEL_IMAGE="$(realpath "$7")"
 WORKLOAD_ELF="$(realpath "${WORKLOAD_ELF:?WORKLOAD_ELF must be set}")"
 BUILD_LOG="$(realpath "${BUILD_LOG:?BUILD_LOG must be set}")"
 RUN_COMMAND="$(realpath "${RUN_COMMAND:?RUN_COMMAND must be set}")"
 SPEC_CONFIG="$(realpath "${SPEC_CONFIG:?SPEC_CONFIG must be set}")"
 GCPT_ELF="$(realpath "${GCPT_ELF:?GCPT_ELF must be set}")"
 GCPT_BIN="$(realpath "${GCPT_BIN:?GCPT_BIN must be set}")"
+source "$(dirname "${BASH_SOURCE[0]}")/dts-config.sh"
 
 mapfile -t vmlinux_files < <(find "$BUILDROOT_DIR/output/build" -path '*/vmlinux' -type f -print | sort)
 if [ "${#vmlinux_files[@]}" -ne 1 ]; then
@@ -31,12 +33,15 @@ SBI_CONFIG="$SBI_BUILD_DIR/platform/generic/configs/defconfig"
 FIRMWARE_IMAGE="$WORKLOAD_BUILD_DIR/fw_payload.bin"
 ROOTFS="$WORKLOAD_BUILD_DIR/rootfs.cpio"
 
-for file in "$SYSTEM_MAP" "$KERNEL_CONFIG" "$DTB_FILE" "$DTS_FILE" "$SBI_ELF" "$SBI_CONFIG" "$FIRMWARE_IMAGE" "$ROOTFS" "$WORKLOAD_ELF" "$BUILD_LOG" "$RUN_COMMAND" "$SPEC_CONFIG" "$GCPT_ELF" "$GCPT_BIN"; do
+for file in "$SYSTEM_MAP" "$KERNEL_CONFIG" "$DTB_FILE" "$DTS_FILE" "$SBI_ELF" "$SBI_CONFIG" "$FIRMWARE_IMAGE" "$ROOTFS" "$KERNEL_IMAGE" "$WORKLOAD_ELF" "$BUILD_LOG" "$RUN_COMMAND" "$SPEC_CONFIG" "$GCPT_ELF" "$GCPT_BIN"; do
     if [ ! -f "$file" ]; then
         echo "Required debug artifact not found: $file" >&2
         exit 1
     fi
 done
+
+dts_config="$(dts_extract_config "$DTS_FILE")"
+read -r memory_base memory_size clint_mmio <<< "$dts_config"
 
 KERNEL_DIR="$IMAGE_DIR/kernel"
 DT_DIR="$IMAGE_DIR/dt"
@@ -69,22 +74,26 @@ cp "$DTS_FILE" "$DT_DIR/$ARTIFACT_NAME.dts"
 cp "$SBI_ELF" "$SBI_DIR/fw_jump.elf"
 cp "$SBI_CONFIG" "$SBI_DIR/defconfig"
 
-kernel_offset_mb=2
-dtb_address=0x80180000
-opensbi_jump_address=0x80200000
+kernel_min_offset_mb=2
+dtb_offset=$((1536 * 1024))
 multihart=false
 if [ "${MULTIHART:-0}" = 1 ]; then
-    kernel_offset_mb=134
-    dtb_address=0x80200000
-    opensbi_jump_address=0x88600000
+    kernel_min_offset_mb=134
+    dtb_offset=$((2 * 1024 * 1024))
     multihart=true
 fi
 
 megabyte=$((1024 * 1024))
-kernel_size=$(stat -c%s "$VMLINUX")
-initramfs_offset_mb=$((kernel_offset_mb + (kernel_size + megabyte - 1) / megabyte))
-kernel_address=$(printf '0x%x' $((0x80000000 + kernel_offset_mb * megabyte)))
-initramfs_address=$(printf '0x%x' $((0x80000000 + initramfs_offset_mb * megabyte)))
+kernel_address_value="$(dts_linux_kernel_address "$memory_base" "$((kernel_min_offset_mb * megabyte))")"
+kernel_size=$(stat -c%s "$KERNEL_IMAGE")
+kernel_end_address=$((kernel_address_value + kernel_size))
+initramfs_address_value=$(( (kernel_end_address + megabyte - 1) / megabyte * megabyte ))
+kernel_address=$(printf '0x%x' "$kernel_address_value")
+initramfs_address=$(printf '0x%x' "$initramfs_address_value")
+dtb_address=$(printf '0x%x' $((memory_base + dtb_offset)))
+opensbi_load_address=$(printf '0x%x' $((memory_base + megabyte)))
+opensbi_jump_address="$kernel_address"
+gcpt_load_address=$(printf '0x%x' "$memory_base")
 sha256() {
     sha256sum "$1" | cut -d ' ' -f 1
 }
@@ -103,14 +112,14 @@ cat > "$MANIFEST_DIR/$ARTIFACT_NAME.json" <<EOF
   "opensbi": {
     "elf": "opensbi/fw_jump.elf",
     "config": "opensbi/defconfig",
-    "load_address": "0x80100000",
+    "load_address": "$opensbi_load_address",
     "jump_address": "$opensbi_jump_address",
     "sha256": "$(sha256 "$SBI_ELF")"
   },
   "gcpt": {
     "elf": "gcpt/gcpt.elf",
     "binary": "gcpt/gcpt.bin",
-    "load_address": "0x80000000",
+    "load_address": "$gcpt_load_address",
     "elf_sha256": "$(sha256 "$GCPT_ELF")",
     "binary_sha256": "$(sha256 "$GCPT_BIN")"
   },

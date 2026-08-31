@@ -184,7 +184,7 @@ $(SPEC2017_BUILD_DIR)/$(1)/firmware/dtb-$(call spec2017_case_dtb_tag,$(1)).stamp
 		"required_min_memory_bytes=$(call spec2017_case_dtb_required_min_memory_bytes,$(1))" > "$$@.tmp"
 	@if [ -f "$$@" ] && cmp -s "$$@.tmp" "$$@"; then rm "$$@.tmp"; else mv "$$@.tmp" "$$@"; fi
 
-$(SPEC2017_BUILD_DIR)/$(1)/fw_payload.bin: $$(SPEC2017_DTS_SOURCES) $$(SPEC2017_GCPT_BIN) $$(SPEC2017_SCRIPTS_DIR)/build-firmware-linux.sh $(SPEC2017_BUILD_DIR)/$(1)/rootfs.cpio $$(SPEC2017_LINUX_IMAGE) $$(SPEC2017_SBI_BIN) $(SPEC2017_BUILD_DIR)/$(1)/firmware/dtb-$(call spec2017_case_dtb_tag,$(1)).stamp
+$(SPEC2017_BUILD_DIR)/$(1)/fw_payload.bin: $$(SPEC2017_DTS_SOURCES) $$(SPEC2017_GCPT_BIN) $$(SPEC2017_SCRIPTS_DIR)/build-firmware-linux.sh $$(SPEC2017_SCRIPTS_DIR)/dts-config.sh $(SPEC2017_BUILD_DIR)/$(1)/rootfs.cpio $$(SPEC2017_LINUX_IMAGE) $$(SPEC2017_SBI_BIN) $(SPEC2017_BUILD_DIR)/$(1)/firmware/dtb-$(call spec2017_case_dtb_tag,$(1)).stamp
 	@printf '$(SPEC2017_PROGRESS_PREFIX) Assembling firmware for $(1)\n'
 	@CROSS_COMPILE="$$(SPEC2017_BUILDROOT_CROSS_COMPILE)" \
 	DTC="$$(SPEC2017_DTC)" \
@@ -202,7 +202,7 @@ linux/$(1): $(SPEC2017_BUILD_DIR)/$(1)/fw_payload.bin
 
 WORKLOAD_PHONY_TARGETS += linux/$(1)
 
-$(SPEC2017_IMAGE_DIR)/stamps/$(1).images.stamp: $(SPEC2017_PREPARE_STAMP) $(SPEC2017_BUILD_DIR)/$(1)/cfg.$(call spec2017_case_cfg_hash,$(1)).stamp $$(SPEC2017_HELPER) $$(SPEC2017_WORKLOAD_DIR)/build.sh $(SPEC2017_BUILD_DIR)/$(1)/download/sentinel $(SPEC2017_BUILD_DIR)/$(1)/build-vars.$(SPEC2017_BUILD_VARS_HASH).stamp $$(SPEC2017_DTS_SOURCES) $$(SPEC2017_GCPT_BIN) $$(SPEC2017_GCPT_ELF) $$(SPEC2017_SCRIPTS_DIR)/build-firmware-linux.sh $$(SPEC2017_SCRIPTS_DIR)/export-linux-debug-artifacts.sh $$(SPEC2017_SCRIPTS_DIR)/package-multihart-rootfs.py $$(SPEC2017_LINUX_IMAGE) $$(SPEC2017_SBI_BIN) | spec2017-check-spec-config
+$(SPEC2017_IMAGE_DIR)/stamps/$(1).images.stamp: $(SPEC2017_PREPARE_STAMP) $(SPEC2017_BUILD_DIR)/$(1)/cfg.$(call spec2017_case_cfg_hash,$(1)).stamp $$(SPEC2017_HELPER) $$(SPEC2017_WORKLOAD_DIR)/build.sh $(SPEC2017_BUILD_DIR)/$(1)/download/sentinel $(SPEC2017_BUILD_DIR)/$(1)/build-vars.$(SPEC2017_BUILD_VARS_HASH).stamp $$(SPEC2017_DTS_SOURCES) $$(SPEC2017_GCPT_BIN) $$(SPEC2017_GCPT_ELF) $$(SPEC2017_SCRIPTS_DIR)/build-firmware-linux.sh $$(SPEC2017_SCRIPTS_DIR)/export-linux-debug-artifacts.sh $$(SPEC2017_SCRIPTS_DIR)/dts-config.sh $$(SPEC2017_SCRIPTS_DIR)/package-multihart-rootfs.py $$(SPEC2017_LINUX_IMAGE) $$(SPEC2017_SBI_BIN) | spec2017-check-spec-config
 	@printf '$(SPEC2017_PROGRESS_PREFIX) Packaging split run images for $(1)\n'
 	@WORKLOAD_DIR="$$(abspath $$(SPEC2017_WORKLOAD_DIR))" \
 	WORKLOAD_BUILD_DIR="$$(abspath $(SPEC2017_BUILD_DIR)/$(1))" \
@@ -249,7 +249,7 @@ $(SPEC2017_IMAGE_DIR)/stamps/$(1).images.stamp: $(SPEC2017_PREPARE_STAMP) $(SPEC
 		SPEC_CONFIG="$(abspath $(call spec2017_case_cfg,$(1)))" \
 		GCPT_ELF="$$(SPEC2017_GCPT_ELF)" \
 		GCPT_BIN="$$(SPEC2017_GCPT_BIN)" \
-		bash "$$(SPEC2017_SCRIPTS_DIR)/export-linux-debug-artifacts.sh" "$$(SPEC2017_BUILDROOT_DIR)" "$$(SPEC2017_SBI_BUILD_DIR)" "$$$$build_dir" "$(SPEC2017_IMAGE_DIR)" "$$$$variant" "$(call spec2017_case_dtb_name,$(1))"; \
+		bash "$$(SPEC2017_SCRIPTS_DIR)/export-linux-debug-artifacts.sh" "$$(SPEC2017_BUILDROOT_DIR)" "$$(SPEC2017_SBI_BUILD_DIR)" "$$$$build_dir" "$(SPEC2017_IMAGE_DIR)" "$$$$variant" "$(call spec2017_case_dtb_name,$(1))" "$$(SPEC2017_LINUX_IMAGE)"; \
 	done
 	@touch "$$@"
 endef

@@ -922,6 +922,7 @@ def write_runtime_files(pkg_dir, case_name_value, run_commands, profiling, multi
         "mount -t sysfs sysfs /sys 2>/dev/null || true",
         'SPEC_ROOT="${SPEC_ROOT:-/spec}"',
         "export SPEC_ROOT",
+        "ulimit -s unlimited 2>/dev/null || true",
         'cd "$SPEC_ROOT"',
         "export LC_ALL=C",
         "export OMP_NUM_THREADS=1",

@@ -256,13 +256,21 @@ def shared_build_dir_for(out_dir, case_name, tune):
     return out_dir.parent / "_bench-builds" / case_name / tune
 
 
-def shared_build_metadata(spec_cfg, spec_dir, cross_compile, tune, compiler_root, jobs):
+def cfg_requires_jemalloc(spec_cfg):
+    text = spec_cfg.read_text(encoding="utf-8")
+    return "JEMALLOC_PATH" in text or "-ljemalloc" in text
+
+
+def shared_build_metadata(spec_cfg, spec_dir, cross_compile, tune, compiler_root, jemalloc_root, jobs):
+    jemalloc_library = jemalloc_root / "lib" / "libjemalloc.a"
     return {
         "spec_cfg_sha256": file_sha256(spec_cfg),
         "spec_dir": str(spec_dir),
         "cross_compile": cross_compile,
         "tune": tune,
         "compiler_root": str(compiler_root),
+        "jemalloc_root": str(jemalloc_root),
+        "jemalloc_library_sha256": file_sha256(jemalloc_library) if jemalloc_library.is_file() else None,
         "jobs": jobs,
         "label": DEFAULT_LABEL,
     }
@@ -319,7 +327,7 @@ def export_build_log_artifact(build_log, out_dir):
     return exported_log
 
 
-def build_elf(spec_dir, case_name, spec_cfg, out_dir, log_dir, cross_compile, tune, jobs, compiler_root):
+def build_elf(spec_dir, case_name, spec_cfg, out_dir, log_dir, cross_compile, tune, jobs, compiler_root, jemalloc_root):
     shared_dir = shared_build_dir_for(out_dir, case_name, tune)
     output_root = shared_dir / "runspec-output"
     generated_cfg = shared_dir / "runcpu-config" / spec_cfg.name
@@ -328,7 +336,7 @@ def build_elf(spec_dir, case_name, spec_cfg, out_dir, log_dir, cross_compile, tu
     exe_dir = output_root / "benchspec" / "CPU" / case_name / "exe"
     metadata_path = shared_dir / "build-meta.json"
     build_state_path = shared_dir / "build-state.json"
-    metadata = shared_build_metadata(spec_cfg, spec_dir, cross_compile, tune, compiler_root, jobs)
+    metadata = shared_build_metadata(spec_cfg, spec_dir, cross_compile, tune, compiler_root, jemalloc_root, jobs)
 
     cached_metadata = maybe_load_json(metadata_path)
     if cached_metadata == metadata:
@@ -397,6 +405,8 @@ def build_elf(spec_dir, case_name, spec_cfg, out_dir, log_dir, cross_compile, tu
         DEFAULT_LABEL,
         "--define",
         f"gcc_dir={compiler_root}",
+        "--define",
+        f"jemalloc_dir={jemalloc_root}",
         "--define",
         f"build_ncpus={jobs}",
         "--tune",
@@ -500,7 +510,7 @@ def write_runtime_files(pkg_dir, case_name, primary_run_dir_name):
     (etc / "inittab").write_text("::sysinit:nemu-exec /bin/sh /spec/run.sh\n", encoding="utf-8")
 
 
-def package_run_tree(spec_dir, generated_cfg, case_name, pkg_dir, output_root, input_set, tune, jobs, compiler_root, log_dir):
+def package_run_tree(spec_dir, generated_cfg, case_name, pkg_dir, output_root, input_set, tune, jobs, compiler_root, jemalloc_root, log_dir):
     runtime_input_set = normalize_runtime_input_set(input_set)
     env = os.environ.copy()
     env.update(spec_env(spec_dir))
@@ -520,6 +530,8 @@ def package_run_tree(spec_dir, generated_cfg, case_name, pkg_dir, output_root, i
         DEFAULT_LABEL,
         "--define",
         f"gcc_dir={compiler_root}",
+        "--define",
+        f"jemalloc_dir={jemalloc_root}",
         "--define",
         f"build_ncpus={jobs}",
         "--tune",
@@ -575,6 +587,18 @@ def package_case(args):
 
     cross_compile, detected_toolchain_root = resolve_cross_compile(args.cross_compile)
     compiler_root = Path(args.compiler_root).resolve() if args.compiler_root else detected_toolchain_root
+    env_jemalloc_root = os.environ.get("SPEC2026_JEMALLOC_ROOT") or os.environ.get("JEMALLOC_INSTALL_PATH")
+    if args.jemalloc_root:
+        jemalloc_root = Path(args.jemalloc_root).resolve()
+    elif env_jemalloc_root:
+        jemalloc_root = Path(env_jemalloc_root).resolve()
+    else:
+        jemalloc_root = (out_dir.parent / "jemalloc" / "install").resolve()
+    if cfg_requires_jemalloc(spec_cfg) and not (jemalloc_root / "lib" / "libjemalloc.a").is_file():
+        raise RuntimeError(
+            f"jemalloc library not found: {jemalloc_root / 'lib' / 'libjemalloc.a'}; "
+            "set SPEC2026_JEMALLOC_ROOT or JEMALLOC_INSTALL_PATH to a valid install prefix"
+        )
 
     elf, output_root, generated_cfg = build_elf(
         spec_dir,
@@ -586,6 +610,7 @@ def package_case(args):
         args.tune,
         args.jobs,
         compiler_root,
+        jemalloc_root,
     )
     exported_elf = export_elf_artifact(elf, args.case, out_dir)
     status(f"Exported ELF: {exported_elf}")
@@ -609,6 +634,7 @@ def package_case(args):
         args.tune,
         args.jobs,
         compiler_root,
+        jemalloc_root,
         log_dir,
     )
 
@@ -623,6 +649,7 @@ def main():
     parser.add_argument("--out-dir")
     parser.add_argument("--cross-compile", default=os.environ.get("CROSS_COMPILE", "riscv64-unknown-linux-gnu-"))
     parser.add_argument("--compiler-root")
+    parser.add_argument("--jemalloc-root")
     parser.add_argument("--log-dir")
     parser.add_argument("--tune", default=os.environ.get("SPEC2026_TUNE", "base"))
     parser.add_argument("--jobs", type=int, default=int(os.environ.get("SPEC2026_JOBS", "1")))

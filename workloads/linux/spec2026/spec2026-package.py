@@ -478,6 +478,7 @@ def write_runtime_files(pkg_dir, case_name, primary_run_dir_name):
             [
                 "#!/bin/sh",
                 "set -e",
+                "ulimit -s unlimited 2>/dev/null || true",
                 f"echo '======== BEGIN {case_name} ========'",
                 "date -R || true",
                 f"cd {target_run_dir}",

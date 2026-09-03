@@ -340,6 +340,7 @@ def write_runtime_files(pkg_dir, case_name, binary_name, args):
                 "set -e",
                 'SPEC_ROOT="${SPEC_ROOT:-/spec}"',
                 "export SPEC_ROOT",
+                "ulimit -s unlimited 2>/dev/null || true",
                 'cd "$SPEC_ROOT"',
                 f"echo '======== BEGIN {case_name} ========'",
                 f"md5sum ./{shlex.quote(binary_name)}",

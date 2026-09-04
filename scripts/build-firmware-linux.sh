@@ -7,18 +7,21 @@ DTS_TEMPLATE_DIR="$(realpath "$3")"
 KERNEL_IMAGE="$(realpath "$4")"
 WORKLOAD_BUILD_DIR="$(realpath "$5")"
 CPIO_ARCHIVE="$WORKLOAD_BUILD_DIR/rootfs.cpio"
+FIRMWARE_OUTPUT="$(realpath -m "${FIRMWARE_OUTPUT:-$WORKLOAD_BUILD_DIR/fw_payload.bin}")"
 DEFAULT_DTB="${DEFAULT_DTB:-}"
 DTB_MEMORY_PROFILE="${DTB_MEMORY_PROFILE:-}"
 DTB_MIN_MEMORY_BYTES="${DTB_MIN_MEMORY_BYTES:-}"
 HARTS="${HARTS:-2}"
 readonly MULTIHART_MAX_HARTS=128
 readonly MULTIHART_KERNEL_OFFSET_MB=134
+readonly SINGLEHART_DTB_OFFSET_KB=1792
+readonly MULTIHART_DTB_OFFSET_KB=2048
 
 MEM_BEGIN=$(( 0x80000000 ))
-DTB_OFFSET_KB=1536
-DTB_MAX_SIZE_KB=512
 SBI_OFFSET_KB=1024
 KERNEL_OFFSET_MB=2
+DTB_OFFSET_KB="$SINGLEHART_DTB_OFFSET_KB"
+DTB_MAX_SIZE_KB=$(( KERNEL_OFFSET_MB * 1024 - DTB_OFFSET_KB ))
 
 if [ "${MULTIHART:-0}" = 1 ]; then
     if [ -z "$DEFAULT_DTB" ]; then
@@ -32,7 +35,7 @@ if [ "${MULTIHART:-0}" = 1 ]; then
         echo "HARTS must be an integer in the range 2..$MULTIHART_MAX_HARTS" >&2
         exit 1
     fi
-    DTB_OFFSET_KB=2048
+    DTB_OFFSET_KB="$MULTIHART_DTB_OFFSET_KB"
     DTB_MAX_SIZE_KB=1024
     KERNEL_OFFSET_MB="$MULTIHART_KERNEL_OFFSET_MB"
 elif [ -z "$DEFAULT_DTB" ]; then
@@ -294,8 +297,9 @@ else
 fi
 check_image_component_size OpenSBI "$SBI_IMAGE" $(( (DTB_OFFSET_KB - SBI_OFFSET_KB) * KILOBYTE ))
 check_image_component_size DTB "$DEFAULT_DTB_FILE" $(( DTB_MAX_SIZE_KB * KILOBYTE ))
-dd if="$STARTUP_FILE" of="$WORKLOAD_BUILD_DIR/fw_payload.bin" bs="$KILOBYTE" count="$SBI_OFFSET_KB" status=none
-dd if="$DEFAULT_DTB_FILE" of="$WORKLOAD_BUILD_DIR/fw_payload.bin" bs="$KILOBYTE" seek="$DTB_OFFSET_KB" conv=notrunc status=none
-dd if="$SBI_IMAGE" of="$WORKLOAD_BUILD_DIR/fw_payload.bin" bs="$KILOBYTE" seek="$SBI_OFFSET_KB" conv=notrunc status=none
-dd if="$KERNEL_IMAGE" of="$WORKLOAD_BUILD_DIR/fw_payload.bin" bs="$MEGABYTE" seek="$KERNEL_OFFSET_MB" conv=notrunc status=none
-dd if="$CPIO_ARCHIVE" of="$WORKLOAD_BUILD_DIR/fw_payload.bin" bs="$MEGABYTE" seek="$INITRAMFS_OFFSET_MB" conv=notrunc status=none
+mkdir -p "$(dirname "$FIRMWARE_OUTPUT")"
+dd if="$STARTUP_FILE" of="$FIRMWARE_OUTPUT" bs="$KILOBYTE" count="$SBI_OFFSET_KB" status=none
+dd if="$DEFAULT_DTB_FILE" of="$FIRMWARE_OUTPUT" bs="$KILOBYTE" seek="$DTB_OFFSET_KB" conv=notrunc status=none
+dd if="$SBI_IMAGE" of="$FIRMWARE_OUTPUT" bs="$KILOBYTE" seek="$SBI_OFFSET_KB" conv=notrunc status=none
+dd if="$KERNEL_IMAGE" of="$FIRMWARE_OUTPUT" bs="$MEGABYTE" seek="$KERNEL_OFFSET_MB" conv=notrunc status=none
+dd if="$CPIO_ARCHIVE" of="$FIRMWARE_OUTPUT" bs="$MEGABYTE" seek="$INITRAMFS_OFFSET_MB" conv=notrunc status=none

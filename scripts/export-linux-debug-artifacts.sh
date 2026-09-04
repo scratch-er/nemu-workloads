@@ -28,7 +28,7 @@ DTB_FILE="$WORKLOAD_BUILD_DIR/dt/$DTB_BASENAME.dtb"
 DTS_FILE="$WORKLOAD_BUILD_DIR/dt/$DTB_BASENAME.dts"
 SBI_ELF="$SBI_BUILD_DIR/build/platform/generic/firmware/fw_jump.elf"
 SBI_CONFIG="$SBI_BUILD_DIR/platform/generic/configs/defconfig"
-FIRMWARE_IMAGE="$WORKLOAD_BUILD_DIR/fw_payload.bin"
+FIRMWARE_IMAGE="$(realpath "${FIRMWARE_IMAGE:-$WORKLOAD_BUILD_DIR/fw_payload.bin}")"
 ROOTFS="$WORKLOAD_BUILD_DIR/rootfs.cpio"
 
 for file in "$SYSTEM_MAP" "$KERNEL_CONFIG" "$DTB_FILE" "$DTS_FILE" "$SBI_ELF" "$SBI_CONFIG" "$FIRMWARE_IMAGE" "$ROOTFS" "$WORKLOAD_ELF" "$BUILD_LOG" "$RUN_COMMAND" "$SPEC_CONFIG" "$GCPT_ELF" "$GCPT_BIN"; do
@@ -70,7 +70,7 @@ cp "$SBI_ELF" "$SBI_DIR/fw_jump.elf"
 cp "$SBI_CONFIG" "$SBI_DIR/defconfig"
 
 kernel_offset_mb=2
-dtb_address=0x80180000
+dtb_address=0x801c0000
 opensbi_jump_address=0x80200000
 multihart=false
 if [ "${MULTIHART:-0}" = 1 ]; then

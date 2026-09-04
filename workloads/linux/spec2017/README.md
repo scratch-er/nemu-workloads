@@ -33,7 +33,7 @@ matching multi-hart DTS template explicitly:
 make linux/spec2017 BENCH=mcf MODE=rate INPUT=ref \
   SPEC2017_ISO=/path/to/cpu2017.iso \
   MULTIHART=1 HARTS=2 \
-  DEFAULT_DTB=xiangshan-fpga-noAIA-2hart-mem16g -jN
+  DEFAULT_DTB=xiangshan-fpga-noAIA-2hart-mem16g-novec -jN
 ```
 
 The same options apply to split image exports:
@@ -42,7 +42,7 @@ The same options apply to split image exports:
 make spec2017-images BENCH=mcf MODE=rate INPUT=ref \
   SPEC2017_ISO=/path/to/cpu2017.iso \
   MULTIHART=1 HARTS=2 \
-  DEFAULT_DTB=xiangshan-fpga-noAIA-2hart-mem16g -jN
+  DEFAULT_DTB=xiangshan-fpga-noAIA-2hart-mem16g-novec -jN
 ```
 
 The package step creates `/spec0` through `/spec<N-1>` and starts one copy on

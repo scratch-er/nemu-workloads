@@ -235,6 +235,19 @@ def spec_env(spec_dir):
     return env
 
 
+def specinvoke_env(spec_dir):
+    env = os.environ.copy()
+    env.update(spec_env(spec_dir))
+    sensitive_name = re.compile(
+        r"(?:TOKEN|SECRET|PASSWORD|PASSWD|API[_-]?KEY|PRIVATE[_-]?KEY|CREDENTIAL)",
+        re.IGNORECASE,
+    )
+    for name in list(env):
+        if sensitive_name.search(name):
+            del env[name]
+    return env
+
+
 def tree_metadata(source):
     source = Path(source).resolve()
     archive = source / "install_archives" / "cpu2017.tar.xz"
@@ -371,7 +384,8 @@ def shared_build_dir_for(out_dir, bench_dir, tune):
     return out_dir.parent / "_bench-builds" / bench_dir / tune
 
 
-def shared_build_metadata(spec_cfg, spec_source, cross_compile, tune, compiler_root, gnu_toolchain_root):
+def shared_build_metadata(spec_cfg, spec_source, cross_compile, tune, compiler_root, gnu_toolchain_root, jemalloc_root):
+    jemalloc_library = jemalloc_root / "lib" / "libjemalloc.a"
     return {
         "spec_cfg_sha256": file_sha256(spec_cfg),
         "spec_source": str(spec_source),
@@ -380,6 +394,8 @@ def shared_build_metadata(spec_cfg, spec_source, cross_compile, tune, compiler_r
         "tune": tune,
         "compiler_root": str(compiler_root),
         "gnu_toolchain_root": str(gnu_toolchain_root),
+        "jemalloc_root": str(jemalloc_root),
+        "jemalloc_library_sha256": file_sha256(jemalloc_library) if jemalloc_library.is_file() else None,
     }
 
 
@@ -412,6 +428,11 @@ def explain_missing_elf(output_root, bench_dir, tune):
     return "\n" + "\n".join(details)
 
 
+def cfg_requires_jemalloc(spec_cfg):
+    text = spec_cfg.read_text(encoding="utf-8")
+    return "JEMALLOC_PATH" in text or "-ljemalloc" in text
+
+
 def export_build_log_artifact(build_log, out_dir):
     if not build_log.is_file():
         return None
@@ -422,17 +443,18 @@ def export_build_log_artifact(build_log, out_dir):
     return exported_log
 
 
-def runcpu_env(spec_dir, cross_compile, compiler_root, gnu_toolchain_root):
+def runcpu_env(spec_dir, cross_compile, compiler_root, gnu_toolchain_root, jemalloc_root):
     env = os.environ.copy()
     env.update(spec_env(spec_dir))
     env["SPEC"] = str(spec_dir)
     env["CROSS_COMPILE"] = str(cross_compile)
     env["SPEC2017_COMPILER_ROOT"] = str(compiler_root)
     env["SPEC2017_GNU_TOOLCHAIN_ROOT"] = str(gnu_toolchain_root)
+    env["JEMALLOC_INSTALL_PATH"] = str(jemalloc_root)
     return env
 
 
-def build_elf(spec_dir, bench_dir, spec_cfg, spec_source, out_dir, log_dir, cross_compile, tune, jobs, compiler_root, gnu_toolchain_root):
+def build_elf(spec_dir, bench_dir, spec_cfg, spec_source, out_dir, log_dir, cross_compile, tune, jobs, compiler_root, gnu_toolchain_root, jemalloc_root):
     shared_dir = shared_build_dir_for(out_dir, bench_dir, tune)
     output_root = shared_dir / "runcpu-output"
     generated_cfg = shared_dir / "runcpu-config" / spec_cfg.name
@@ -440,7 +462,7 @@ def build_elf(spec_dir, bench_dir, spec_cfg, spec_source, out_dir, log_dir, cros
     build_log = shared_log_dir / "build.log"
     exe_dir = output_root / "benchspec" / "CPU" / bench_dir / "exe"
     metadata_path = shared_dir / "build-meta.json"
-    metadata = shared_build_metadata(spec_cfg, spec_source, cross_compile, tune, compiler_root, gnu_toolchain_root)
+    metadata = shared_build_metadata(spec_cfg, spec_source, cross_compile, tune, compiler_root, gnu_toolchain_root, jemalloc_root)
     if metadata_path.is_file():
         try:
             cached_metadata = load_json(metadata_path)
@@ -464,7 +486,7 @@ def build_elf(spec_dir, bench_dir, spec_cfg, spec_source, out_dir, log_dir, cros
     shared_log_dir.mkdir(parents=True, exist_ok=True)
     build_local_config(spec_cfg, generated_cfg, output_root, jobs)
     status(f"Generated SPEC cfg: {generated_cfg}")
-    env = runcpu_env(spec_dir, cross_compile, compiler_root, gnu_toolchain_root)
+    env = runcpu_env(spec_dir, cross_compile, compiler_root, gnu_toolchain_root, jemalloc_root)
     cmd = [
         str(spec_dir / "bin" / "runcpu"),
         "--action",
@@ -712,8 +734,7 @@ def populate_x264_run_dir(spec_dir, run_dir):
 def render_specinvoke_commands(spec_dir, run_dir, cmd_file, log_path):
     if not cmd_file.is_file():
         raise RuntimeError(f"{cmd_file.name} not found in run directory: {run_dir}")
-    env = os.environ.copy()
-    env.update(spec_env(spec_dir))
+    env = specinvoke_env(spec_dir)
     output = run(
         [str(spec_dir / "bin" / "specinvoke"), "-nn", str(cmd_file)],
         cwd=run_dir,
@@ -735,9 +756,9 @@ def render_specinvoke_commands(spec_dir, run_dir, cmd_file, log_path):
     return commands
 
 
-def prepare_run_dir(spec_dir, bench_dir, workload, generated_output_root, spec_cfg, tune, log_dir, cross_compile, compiler_root, gnu_toolchain_root):
+def prepare_run_dir(spec_dir, bench_dir, workload, generated_output_root, spec_cfg, tune, log_dir, cross_compile, compiler_root, gnu_toolchain_root, jemalloc_root):
     setup_log = log_dir / "runsetup.log"
-    env = runcpu_env(spec_dir, cross_compile, compiler_root, gnu_toolchain_root)
+    env = runcpu_env(spec_dir, cross_compile, compiler_root, gnu_toolchain_root, jemalloc_root)
     if is_x264_bench(bench_dir):
         prepare_x264_input_data(spec_dir, log_dir, workload)
     cmd = [
@@ -822,6 +843,8 @@ def x264_specinvoke_commands(spec_dir, run_dir):
 def copy_tree_contents(src, dst):
     dst.mkdir(parents=True, exist_ok=True)
     for item in src.iterdir():
+        if item.name in {"inputgen.cmd", "inputgen.out", "speccmds.cmd", "compare.cmd"}:
+            continue
         target = dst / item.name
         if item.is_symlink():
             if target.exists() or target.is_symlink():
@@ -911,7 +934,14 @@ def write_variants_metadata(out_dir, variants):
     write_json(out_dir / "variants.json", serializable)
 
 
-def write_runtime_files(pkg_dir, case_name_value, run_commands, profiling, multihart="0"):
+def write_runtime_files(
+    pkg_dir,
+    case_name_value,
+    run_commands,
+    profiling,
+    multihart="0",
+    profile_command_index=0,
+):
     spec_root = pkg_dir / "spec"
     run_sh = spec_root / "run.sh"
     script_lines = [
@@ -932,13 +962,13 @@ def write_runtime_files(pkg_dir, case_name_value, run_commands, profiling, multi
         "status=0",
         "set +e",
     ]
-    for command in run_commands:
+    for command_index, command in enumerate(run_commands):
         command_lines = [
             "if [ \"$status\" -eq 0 ]; then",
             f"  spec_cmd={shlex.quote(command)}",
             "  echo \"CMD: $spec_cmd\"",
         ]
-        if profiling == "1" and multihart != "1":
+        if profiling == "1" and multihart != "1" and command_index == profile_command_index:
             command_lines.extend(["  nemu-trap 256", "  nemu-trap 257"])
         command_lines.extend(
             [
@@ -946,12 +976,12 @@ def write_runtime_files(pkg_dir, case_name_value, run_commands, profiling, multi
                 "  status=$?",
             ]
         )
-        if multihart != "1":
-            command_lines.append("  nemu-trap \"$status\"")
         command_lines.append("fi")
         script_lines.extend(
             command_lines
         )
+    if multihart != "1":
+        script_lines.append("nemu-trap \"$status\"")
     script_lines.extend(
         [
             "set -e",
@@ -984,7 +1014,14 @@ def package_runtime_variant(variant, run_dir, profiling, multihart):
     (pkg_dir / "spec").mkdir(parents=True)
     status(f"Packaging rootfs for {variant['name']}")
     copy_tree_contents(run_dir, pkg_dir / "spec")
-    write_runtime_files(pkg_dir, variant["name"], variant["commands"], profiling, multihart)
+    write_runtime_files(
+        pkg_dir,
+        variant["name"],
+        variant["commands"],
+        profiling,
+        multihart,
+        profile_command_index=len(variant["commands"]) - 1,
+    )
 
 
 def package_case(args):
@@ -1004,6 +1041,18 @@ def package_case(args):
     cross_compile, detected_toolchain_root = resolve_cross_compile(args.cross_compile)
     compiler_root = Path(args.compiler_root).resolve() if args.compiler_root else detected_toolchain_root
     gnu_toolchain_root = Path(args.gnu_toolchain_root).resolve() if args.gnu_toolchain_root else detected_toolchain_root
+    env_jemalloc_root = os.environ.get("SPEC2017_JEMALLOC_ROOT") or os.environ.get("JEMALLOC_INSTALL_PATH")
+    if args.jemalloc_root:
+        jemalloc_root = Path(args.jemalloc_root).resolve()
+    elif env_jemalloc_root:
+        jemalloc_root = Path(env_jemalloc_root).resolve()
+    else:
+        jemalloc_root = (out_dir.parent / "jemalloc" / "install").resolve()
+    if cfg_requires_jemalloc(spec_cfg) and not (jemalloc_root / "lib" / "libjemalloc.a").is_file():
+        raise RuntimeError(
+            f"jemalloc library not found: {jemalloc_root / 'lib' / 'libjemalloc.a'}; "
+            "set SPEC2017_JEMALLOC_ROOT or JEMALLOC_INSTALL_PATH to a valid install prefix"
+        )
     elf, output_root = build_elf(
         spec_dir,
         case["bench_dir"],
@@ -1016,6 +1065,7 @@ def package_case(args):
         args.jobs,
         compiler_root,
         gnu_toolchain_root,
+        jemalloc_root,
     )
     exported_elf = export_elf_artifact(elf, args.case, out_dir)
     status(f"Exported ELF: {exported_elf}")
@@ -1032,6 +1082,7 @@ def package_case(args):
         cross_compile,
         compiler_root,
         gnu_toolchain_root,
+        jemalloc_root,
     )
     run_commands = shell_from_specinvoke(spec_dir, run_dir, log_dir)
     if args.all_runs:
@@ -1089,6 +1140,7 @@ def main():
     parser.add_argument("--cross-compile", default="riscv64-unknown-linux-gnu-")
     parser.add_argument("--compiler-root")
     parser.add_argument("--gnu-toolchain-root")
+    parser.add_argument("--jemalloc-root")
     parser.add_argument("--log-dir")
     parser.add_argument("--tune", default="base")
     parser.add_argument("--jobs", default=str(os.cpu_count() or 1))

@@ -19,6 +19,7 @@ SPEC2017_PREPARE_SCRIPT := $(SPEC2017_WORKLOAD_DIR)/prepare-spec-workspace.sh
 SPEC2017_CROSS_COMPILE ?= riscv64-unknown-linux-gnu-
 SPEC2017_COMPILER_ROOT ?=
 SPEC2017_GNU_TOOLCHAIN_ROOT ?=
+SPEC2017_JEMALLOC_ROOT ?=
 SPEC2017_MULTIHART ?= $(MULTIHART)
 SPEC2017_HARTS ?= $(if $(HARTS),$(HARTS),2)
 SPEC2017_EXPLICIT_DEFAULT_DTB := $(if $(DEFAULT_DTB),1,$(if $(filter undefined,$(origin SPEC2017_DEFAULT_DTB)),,1))
@@ -61,7 +62,7 @@ spec2017_case_dtb_required_min_memory_bytes = $(if $(filter 1,$(SPEC2017_MULTIHA
 spec2017_case_cfg = $(if $(SPEC2017_EXPLICIT_CFG),$(SPEC2017_CFG),$(if $(findstring _speed_,$(1)),$(SPEC2017_SPEED_CFG),$(SPEC2017_RATE_CFG)))
 spec2017_case_cfg_hash = $(shell if [ -f "$(abspath $(call spec2017_case_cfg,$(1)))" ]; then sha256sum "$(abspath $(call spec2017_case_cfg,$(1)))" | cut -d ' ' -f 1; else printf 'missing'; fi)
 SPEC2017_PYTHON := PYTHONDONTWRITEBYTECODE=1 python3
-SPEC2017_BUILD_VARS_HASH := $(shell printf '%s\n' '$(SPEC2017_PROFILING)' '$(SPEC2017_TUNE)' '$(SPEC2017_CROSS_COMPILE)' '$(SPEC2017_COMPILER_ROOT)' '$(SPEC2017_GNU_TOOLCHAIN_ROOT)' 'multihart=$(SPEC2017_MULTIHART)' 'harts=$(SPEC2017_HARTS)' | sha256sum | cut -d ' ' -f 1)
+SPEC2017_BUILD_VARS_HASH := $(shell printf '%s\n' '$(SPEC2017_PROFILING)' '$(SPEC2017_TUNE)' '$(SPEC2017_CROSS_COMPILE)' '$(SPEC2017_COMPILER_ROOT)' '$(SPEC2017_GNU_TOOLCHAIN_ROOT)' 'jemalloc_root=$(SPEC2017_JEMALLOC_ROOT)' 'jemalloc_repo=$(SPEC2017_JEMALLOC_REPO)' 'jemalloc_commit=$(SPEC2017_JEMALLOC_COMMIT)' 'jemalloc_host=$(SPEC2017_JEMALLOC_CONFIGURE_HOST)' 'multihart=$(SPEC2017_MULTIHART)' 'harts=$(SPEC2017_HARTS)' | sha256sum | cut -d ' ' -f 1)
 SPEC2017_CASE := $(shell $(SPEC2017_PYTHON) $(SPEC2017_HELPER) --resolve-case --bench '$(BENCH)' --input-set '$(SPEC2017_INPUT)' --mode '$(SPEC2017_MODE)' 2>/dev/null)
 SPEC2017_ALL_CASES := $(shell $(SPEC2017_PYTHON) $(SPEC2017_HELPER) --list-cases --input-set all --mode all 2>/dev/null)
 SPEC2017_SELECTED_CASES := $(shell $(SPEC2017_PYTHON) $(SPEC2017_HELPER) --list-cases --input-set $(SPEC2017_INPUT) --mode $(SPEC2017_MODE) 2>/dev/null)
@@ -137,7 +138,7 @@ $(SPEC2017_BUILD_DIR)/$(1)/build-vars.$(SPEC2017_BUILD_VARS_HASH).stamp:
 	@rm -f "$$(@D)"/build-vars.*.stamp
 	@printf '%s\n' "profiling=$(SPEC2017_PROFILING)" "multihart=$(SPEC2017_MULTIHART)" "harts=$(SPEC2017_HARTS)" > "$$@"
 
-$(SPEC2017_BUILD_DIR)/$(1)/elf/$(1).elf: $(SPEC2017_PREPARE_STAMP) $(SPEC2017_BUILD_DIR)/$(1)/cfg.$(call spec2017_case_cfg_hash,$(1)).stamp $$(SPEC2017_HELPER) $$(SPEC2017_WORKLOAD_DIR)/build.sh
+$(SPEC2017_BUILD_DIR)/$(1)/elf/$(1).elf: $(SPEC2017_PREPARE_STAMP) $(SPEC2017_BUILD_DIR)/$(1)/cfg.$(call spec2017_case_cfg_hash,$(1)).stamp $(SPEC2017_BUILD_DIR)/$(1)/build-vars.$(SPEC2017_BUILD_VARS_HASH).stamp $$(SPEC2017_HELPER) $$(SPEC2017_WORKLOAD_DIR)/build.sh
 	@mkdir -p "$$(dir $$@)"
 	@WORKLOAD_DIR="$$(abspath $$(SPEC2017_WORKLOAD_DIR))" \
 	WORKLOAD_BUILD_DIR="$$(abspath $(SPEC2017_BUILD_DIR)/$(1))" \
@@ -150,6 +151,7 @@ $(SPEC2017_BUILD_DIR)/$(1)/elf/$(1).elf: $(SPEC2017_PREPARE_STAMP) $(SPEC2017_BU
 	SPEC2017_CFG="$(abspath $(call spec2017_case_cfg,$(1)))" \
 	SPEC2017_COMPILER_ROOT="$$(SPEC2017_COMPILER_ROOT)" \
 	SPEC2017_GNU_TOOLCHAIN_ROOT="$$(SPEC2017_GNU_TOOLCHAIN_ROOT)" \
+	SPEC2017_JEMALLOC_ROOT="$$(SPEC2017_JEMALLOC_ROOT)" \
 	SPEC2017_TUNE="$$(SPEC2017_TUNE)" \
 	SPEC2017_JOBS="$$(SPEC2017_JOBS)" \
 	SPEC2017_ELF_ONLY=1 \
@@ -165,6 +167,7 @@ $(SPEC2017_BUILD_DIR)/$(1)/rootfs.cpio: $(SPEC2017_PREPARE_STAMP) $(SPEC2017_BUI
 	SPEC2017_CFG="$(abspath $(call spec2017_case_cfg,$(1)))" \
 	SPEC2017_COMPILER_ROOT="$$(SPEC2017_COMPILER_ROOT)" \
 	SPEC2017_GNU_TOOLCHAIN_ROOT="$$(SPEC2017_GNU_TOOLCHAIN_ROOT)" \
+	SPEC2017_JEMALLOC_ROOT="$$(SPEC2017_JEMALLOC_ROOT)" \
 	SPEC2017_TUNE="$$(SPEC2017_TUNE)" \
 	SPEC2017_JOBS="$$(SPEC2017_JOBS)" \
 	SPEC2017_PROFILING="$$(SPEC2017_PROFILING)" \
@@ -215,6 +218,7 @@ $(SPEC2017_IMAGE_DIR)/stamps/$(1).images.stamp: $(SPEC2017_PREPARE_STAMP) $(SPEC
 	SPEC2017_CFG="$(abspath $(call spec2017_case_cfg,$(1)))" \
 	SPEC2017_COMPILER_ROOT="$$(SPEC2017_COMPILER_ROOT)" \
 	SPEC2017_GNU_TOOLCHAIN_ROOT="$$(SPEC2017_GNU_TOOLCHAIN_ROOT)" \
+	SPEC2017_JEMALLOC_ROOT="$$(SPEC2017_JEMALLOC_ROOT)" \
 	SPEC2017_TUNE="$$(SPEC2017_TUNE)" \
 	SPEC2017_JOBS="$$(SPEC2017_JOBS)" \
 	SPEC2017_ALL_RUNS=1 \

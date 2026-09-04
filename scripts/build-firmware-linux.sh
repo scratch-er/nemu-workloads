@@ -7,6 +7,7 @@ DTS_TEMPLATE_DIR="$(realpath "$3")"
 KERNEL_IMAGE="$(realpath "$4")"
 WORKLOAD_BUILD_DIR="$(realpath "$5")"
 CPIO_ARCHIVE="$WORKLOAD_BUILD_DIR/rootfs.cpio"
+source "$(dirname "${BASH_SOURCE[0]}")/dts-config.sh"
 DEFAULT_DTB="${DEFAULT_DTB:-}"
 DTB_MEMORY_PROFILE="${DTB_MEMORY_PROFILE:-}"
 DTB_MIN_MEMORY_BYTES="${DTB_MIN_MEMORY_BYTES:-}"
@@ -14,11 +15,10 @@ HARTS="${HARTS:-2}"
 readonly MULTIHART_MAX_HARTS=128
 readonly MULTIHART_KERNEL_OFFSET_MB=134
 
-MEM_BEGIN=$(( 0x80000000 ))
 DTB_OFFSET_KB=1536
 DTB_MAX_SIZE_KB=512
 SBI_OFFSET_KB=1024
-KERNEL_OFFSET_MB=2
+KERNEL_MIN_OFFSET_MB=2
 
 if [ "${MULTIHART:-0}" = 1 ]; then
     if [ -z "$DEFAULT_DTB" ]; then
@@ -34,18 +34,52 @@ if [ "${MULTIHART:-0}" = 1 ]; then
     fi
     DTB_OFFSET_KB=2048
     DTB_MAX_SIZE_KB=1024
-    KERNEL_OFFSET_MB="$MULTIHART_KERNEL_OFFSET_MB"
+    KERNEL_MIN_OFFSET_MB="$MULTIHART_KERNEL_OFFSET_MB"
 elif [ -z "$DEFAULT_DTB" ]; then
     DEFAULT_DTB=xiangshan
+fi
+
+resolve_default_dtb_base() {
+    local default_dtb="$1"
+    local memory_profile="$2"
+
+    if [ -z "$memory_profile" ]; then
+        printf '%s\n' "$default_dtb"
+        return
+    fi
+    if [[ "$default_dtb" == *-novec ]]; then
+        printf '%s\n' "${default_dtb%-novec}-mem${memory_profile}-novec"
+        return
+    fi
+    printf '%s\n' "${default_dtb}-mem${memory_profile}"
+}
+
+DEFAULT_DTB_BASE="$(resolve_default_dtb_base "$DEFAULT_DTB" "$DTB_MEMORY_PROFILE")"
+DEFAULT_DTB_TEMPLATE="$DTS_TEMPLATE_DIR/$DEFAULT_DTB_BASE.dts.in"
+if ! [ -f "$DEFAULT_DTB_TEMPLATE" ]; then
+    echo "Default device tree template not found in dts directory: $DEFAULT_DTB_TEMPLATE" >&2
+    exit 1
+fi
+DTS_CONFIG="$(dts_extract_config "$DEFAULT_DTB_TEMPLATE")"
+read -r MEM_BEGIN MEM_SIZE CLINT_MMIO <<< "$DTS_CONFIG"
+if [ "${MULTIHART:-0}" = 1 ] && {
+    (( MEM_BEGIN != 0x80000000 )) ||
+    (( CLINT_MMIO != 0x38000000 ));
+}; then
+    printf 'Multi-hart DTS addresses are fixed: expected DRAM=0x80000000 and CLINT=0x38000000 in %s\n' \
+        "$DEFAULT_DTB_TEMPLATE" >&2
+    exit 1
 fi
 
 KILOBYTE=1024
 MEGABYTE=$(( 1024*1024 ))
 KERNEL_SIZE=$(stat -c%s "$KERNEL_IMAGE")
-KERNEL_SIZE_MB=$(( (KERNEL_SIZE + MEGABYTE - 1) / MEGABYTE ))
-INITRAMFS_OFFSET_MB=$(( KERNEL_OFFSET_MB + KERNEL_SIZE_MB ))
+KERNEL_BEGIN_ADDR="$(dts_linux_kernel_address "$MEM_BEGIN" "$((KERNEL_MIN_OFFSET_MB * MEGABYTE))")"
+KERNEL_END_ADDR=$(( KERNEL_BEGIN_ADDR + KERNEL_SIZE ))
+KERNEL_OFFSET_KB=$(( (KERNEL_BEGIN_ADDR - MEM_BEGIN) / KILOBYTE ))
+INITRAMFS_BEGIN_ADDR=$(( (KERNEL_END_ADDR + MEGABYTE - 1) / MEGABYTE * MEGABYTE ))
+INITRAMFS_OFFSET_KB=$(( (INITRAMFS_BEGIN_ADDR - MEM_BEGIN) / KILOBYTE ))
 INITRAMFS_SIZE=$(stat -c%s "$CPIO_ARCHIVE")
-INITRAMFS_BEGIN_ADDR=$(( MEM_BEGIN + INITRAMFS_OFFSET_MB*MEGABYTE ))
 INITRAMFS_END_ADDR=$(( INITRAMFS_BEGIN_ADDR + INITRAMFS_SIZE ))
 INITRAMFS_BEGIN_HEX=$(printf "0x%x" "$INITRAMFS_BEGIN_ADDR")
 INITRAMFS_END_HEX=$(printf "0x%x" "$INITRAMFS_END_ADDR")
@@ -58,41 +92,11 @@ INITRAMFS_END_LO=$(printf "0x%x" $(( INITRAMFS_END_ADDR & 0xffffffff )))
 DTC="${DTC:-dtc}"
 dtb_memory_range_bytes() {
     local dts_file="$1"
-    local cells
-    cells="$(
-        awk '
-            /device_type[[:space:]]*=[[:space:]]*"memory"/ { in_memory = 1 }
-            in_memory && /reg[[:space:]]*=/ {
-                line = $0
-                while (line !~ /;/ && (getline more) > 0) {
-                    line = line " " more
-                }
-                gsub(/[<>;]/, " ", line)
-                n = split(line, fields, /[[:space:]]+/)
-                count = 0
-                for (i = 1; i <= n; i++) {
-                    if (fields[i] ~ /^(0x[0-9a-fA-F]+|[0-9]+)$/) {
-                        values[++count] = fields[i]
-                    }
-                }
-                if (count >= 4) {
-                    print values[1], values[2], values[3], values[4]
-                    exit
-                }
-            }
-        ' "$dts_file"
-    )"
-    if [ -z "$cells" ]; then
-        return 1
-    fi
-    set -- $cells
-    local begin_high="$1"
-    local begin_low="$2"
-    local size_high="$3"
-    local size_low="$4"
-    printf '%s %s\n' \
-        $(( begin_high * 4294967296 + begin_low )) \
-        $(( size_high * 4294967296 + size_low ))
+    local memory_begin memory_bytes unused_clint
+    local dts_config
+    dts_config="$(dts_extract_config "$dts_file")" || return
+    read -r memory_begin memory_bytes unused_clint <<< "$dts_config"
+    printf '%s %s\n' "$((memory_begin))" "$((memory_bytes))"
 }
 
 check_dtb_memory_layout() {
@@ -107,9 +111,9 @@ check_dtb_memory_layout() {
         exit 1
     fi
     read -r memory_begin memory_bytes <<< "$memory_range"
-    if [ "$memory_begin" -ne "$MEM_BEGIN" ]; then
-        printf 'DTS memory must begin at 0x80000000: found 0x%x in %s\n' \
-            "$memory_begin" "$dts_file" >&2
+    if (( memory_begin != MEM_BEGIN )); then
+        printf 'DTS memory base differs from selected DTS: found 0x%x, expected 0x%x in %s\n' \
+            "$memory_begin" "$MEM_BEGIN" "$dts_file" >&2
         exit 1
     fi
     if [ -n "$min_bytes" ] && [ "$memory_bytes" -lt "$min_bytes" ]; then
@@ -242,32 +246,9 @@ build-dtb() {
     "$DTC" -I dts -O dtb -o "$dtb_file" "$dts_file"
 }
 
-resolve_default_dtb_base() {
-    local default_dtb="$1"
-    local memory_profile="$2"
-
-    if [ -z "$memory_profile" ]; then
-        printf '%s\n' "$default_dtb"
-        return
-    fi
-    if [[ "$default_dtb" == *-novec ]]; then
-        printf '%s\n' "${default_dtb%-novec}-mem${memory_profile}-novec"
-        return
-    fi
-    printf '%s\n' "${default_dtb}-mem${memory_profile}"
-}
-
 # Assemble the image using the selected DTB basename and optional memory profile.
-DEFAULT_DTB_BASE="$(resolve_default_dtb_base "$DEFAULT_DTB" "$DTB_MEMORY_PROFILE")"
-DEFAULT_DTB_TEMPLATE="$DTS_TEMPLATE_DIR/$DEFAULT_DTB_BASE.dts.in"
-if ! [ -f "$DEFAULT_DTB_TEMPLATE" ]; then
-    echo "Default device tree template not found in dts directory: $DEFAULT_DTB_TEMPLATE" >&2
-    exit 1
-fi
-
-for dts_template in "$DTS_TEMPLATE_DIR"/*.dts.in ; do
-    build-dtb "$dts_template"
-done
+rm -rf "$WORKLOAD_BUILD_DIR/dt"
+build-dtb "$DEFAULT_DTB_TEMPLATE"
 
 DEFAULT_DTB_FILE="$WORKLOAD_BUILD_DIR/dt/$DEFAULT_DTB_BASE.dtb"
 DEFAULT_DTS_FILE="$WORKLOAD_BUILD_DIR/dt/$DEFAULT_DTB_BASE.dts"
@@ -297,5 +278,5 @@ check_image_component_size DTB "$DEFAULT_DTB_FILE" $(( DTB_MAX_SIZE_KB * KILOBYT
 dd if="$STARTUP_FILE" of="$WORKLOAD_BUILD_DIR/fw_payload.bin" bs="$KILOBYTE" count="$SBI_OFFSET_KB" status=none
 dd if="$DEFAULT_DTB_FILE" of="$WORKLOAD_BUILD_DIR/fw_payload.bin" bs="$KILOBYTE" seek="$DTB_OFFSET_KB" conv=notrunc status=none
 dd if="$SBI_IMAGE" of="$WORKLOAD_BUILD_DIR/fw_payload.bin" bs="$KILOBYTE" seek="$SBI_OFFSET_KB" conv=notrunc status=none
-dd if="$KERNEL_IMAGE" of="$WORKLOAD_BUILD_DIR/fw_payload.bin" bs="$MEGABYTE" seek="$KERNEL_OFFSET_MB" conv=notrunc status=none
-dd if="$CPIO_ARCHIVE" of="$WORKLOAD_BUILD_DIR/fw_payload.bin" bs="$MEGABYTE" seek="$INITRAMFS_OFFSET_MB" conv=notrunc status=none
+dd if="$KERNEL_IMAGE" of="$WORKLOAD_BUILD_DIR/fw_payload.bin" bs="$KILOBYTE" seek="$KERNEL_OFFSET_KB" conv=notrunc status=none
+dd if="$CPIO_ARCHIVE" of="$WORKLOAD_BUILD_DIR/fw_payload.bin" bs="$KILOBYTE" seek="$INITRAMFS_OFFSET_KB" conv=notrunc status=none

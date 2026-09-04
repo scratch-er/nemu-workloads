@@ -13,7 +13,7 @@ For Linux workloads:
 
 - `build/linux-workloads/workload_name/fw_payload.bin`: The all-in-one image that can be directly loaded by NEMU.
 - `build/linux-workloads/workload_name/rootfs.cpio`: The initramfs overlay of the workload.
-- `build/linux-workloads/workload_name/dt/`: A directory containing device tree files.
+- `build/linux-workloads/workload_name/dt/`: The selected device tree source and binary.
 
 For AM workloads:
 
@@ -64,21 +64,23 @@ To create a compressed tarball containing all built workloads, run `make tarball
 
 - [x] Add workload `kvmtool`.
 - [ ] Add workload `Xvisor`.
-- [x] Support for building multiple device trees for each Linux workload.
+- [x] Support for selectable device tree templates.
 - [ ] Test Linux workloads with checkpoint functionalities of NEMU.
 
 ## Format of the Image
 
 ### Linux Workloads
 
-For Linux workloads, the image assumes that execution begins at `0x80000000`, and the image is loaded into a continuous memory starting from that address. A single-core image contains:
+For single-core Linux workloads, execution begins at the DRAM base from the
+selected DTS, and the image is loaded into continuous memory starting there.
+A single-core image contains:
 
 | Offset  | Content                       |
 |---------|-------------------------------|
 | 0.0 MiB | LibCheckpointAlpha            |
 | 1.0 MiB | OpenSBI                       |
 | 1.5 MiB | device tree                   |
-| 2.0 MiB | Linux kernel                  |
+| >=2.0 MiB | Linux kernel at the next 2 MiB-aligned address |
 | --      | initramfs containing workload |
 
 A multi-hart image uses the fixed QEMU checkpoint layout:
@@ -96,15 +98,14 @@ For OpenSBI, the multi-hart image uses `FW_TEXT_START=0x80100000`,
 The canonical single-core and multi-hart DTS memory maps, including DRAM
 profiles and DTS selection examples, are in [dts/README.md](dts/README.md#single-core-physical-memory-map).
 
-Multiple device trees are built for each workload, each corresponds to a specific NEMU configuration. The device tree files are placed under the `dt` directory in the build output directory of that workload. The "default" device tree built into the image is `dt/xiangshan.dtb`. To replace the device tree, the following command can be used:
+For single-core images, the selected DTS is the source of truth for the DRAM
+base used by GCPT, OpenSBI, the firmware packer, and the exported manifest, as
+well as the CLINT address used by GCPT. Its generated DTS and DTB are placed in
+the workload's `dt` directory and the DTB is embedded in the firmware image.
 
-For DTS files used with gcpt, the beginning of RAM must be reserved with a `reserved-memory` node so Linux does not allocate or map the gcpt checkpoint buffer. The XiangShan FPGA DTS templates reserve 1 MiB at `0x80000000` for this purpose.
+For DTS files used with gcpt, the beginning of RAM must be reserved with a `reserved-memory` node so Linux does not allocate or map the gcpt checkpoint buffer. The XiangShan FPGA DTS templates reserve the first 1 MiB of their declared DRAM for this purpose.
 
-```shell
-dd conv=notrunc bs=1024 seek=1536 if=dt/some_device.dtb of=fw_payload.bin
-```
-
-OpenSBI is patched (see `bootloader/opensbi.patch`) to load the device tree from a fixed location. The initramfs is placed after the Linux kernel and aligned to 1 MiB.
+OpenSBI is patched (see `bootloader/opensbi.patch`) to load the device tree from a fixed offset relative to the DRAM base. The initramfs is placed after the Linux kernel and aligned to 1 MiB.
 
 ### AM Workloads
 
@@ -205,7 +206,8 @@ Then run `make` to build your new workload.
 
 ## Adding a Device Tree
 
-To add a device tree, simply create a template file `device_name.dts.in` in the `dts` directory. It will be automatically found by the build system.
+To add a device tree, create a template file `device_name.dts.in` in the `dts`
+directory and select it with `DEFAULT_DTB=device_name`.
 
 Currently, the memory location of the initramfs containing the workload is passed to the kernel by device tree. So for each workload, device tree files are generated from the template on the fly, because the size of the initramfs cannot be known in advance. You should use the parameters `INITRAMFS_BEGIN` and `INITRAMFS_END` in the device tree template. 
 

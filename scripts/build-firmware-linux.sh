@@ -12,6 +12,7 @@ source "$(dirname "${BASH_SOURCE[0]}")/dts-config.sh"
 DEFAULT_DTB="${DEFAULT_DTB:-}"
 DTB_MEMORY_PROFILE="${DTB_MEMORY_PROFILE:-}"
 DTB_MIN_MEMORY_BYTES="${DTB_MIN_MEMORY_BYTES:-}"
+DTB_REQUIRED_MIN_MEMORY_BYTES="${DTB_REQUIRED_MIN_MEMORY_BYTES:-}"
 HARTS="${HARTS:-2}"
 readonly MULTIHART_MAX_HARTS=128
 readonly MULTIHART_KERNEL_OFFSET_MB=134
@@ -269,6 +270,12 @@ if [ "${MULTIHART:-0}" = 1 ]; then
     check_multihart_checkpoint_reservation "$DEFAULT_DTS_FILE"
 fi
 check_dtb_cpu_count "$DEFAULT_DTS_FILE" "$expected_harts"
+if [ -n "$DTB_REQUIRED_MIN_MEMORY_BYTES" ] && {
+    [ -z "$DTB_MIN_MEMORY_BYTES" ] ||
+    [ "$DTB_REQUIRED_MIN_MEMORY_BYTES" -gt "$DTB_MIN_MEMORY_BYTES" ]
+}; then
+    DTB_MIN_MEMORY_BYTES="$DTB_REQUIRED_MIN_MEMORY_BYTES"
+fi
 check_dtb_memory_layout "$DEFAULT_DTS_FILE" "$DTB_MIN_MEMORY_BYTES"
 SBI_IMAGE="$SBI_BUILD_DIR/build/platform/generic/firmware/fw_jump.bin"
 if [ "${MULTIHART:-0}" = 1 ]; then

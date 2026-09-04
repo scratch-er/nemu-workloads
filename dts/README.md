@@ -22,6 +22,10 @@ These parameters are replaced with the corresponding values when building the wo
 - `xiangshan-fpga-noAIA-mem64g-novec.dts.in`: XiangShan FPGA DTS without vector extensions, with a 64 GiB memory profile.
 - `xiangshan-qemu-nemu-mem2g.dts.in`: Single-hart DTS for QEMU's `nemu`
   machine, with 2 GiB of memory and a no-IRQ 16550A UART at `0x310b0000`.
+- `xiangshan-qemu-nemu-mem8g.dts.in`: The same single-hart QEMU profile with
+  8 GiB of memory, used by SPEC2017 rate workloads.
+- `xiangshan-qemu-nemu-mem24g.dts.in`: The same single-hart QEMU profile with
+  24 GiB of memory, used by SPEC2017 speed workloads.
 
 Multi-hart XiangShan builds require the user to select a complete DTS basename
 with `DEFAULT_DTB`; the build no longer assumes a `mem8g` suffix. For example,

@@ -32,8 +32,10 @@ $(error MULTIHART=1 requires PLATFORM=qemu)
 endif
 endif
 QEMU_DEFAULT_DTB ?= xiangshan-qemu-nemu-mem2g
+SPEC2017_QEMU_DEFAULT_DTB ?= xiangshan-qemu-nemu
 SPEC2017_EXPLICIT_DEFAULT_DTB := $(if $(DEFAULT_DTB),1,$(if $(filter undefined,$(origin SPEC2017_DEFAULT_DTB)),,1))
-SPEC2017_DEFAULT_DTB ?= $(if $(DEFAULT_DTB),$(DEFAULT_DTB),$(if $(filter 1,$(SPEC2017_MULTIHART)),,$(if $(filter qemu,$(PLATFORM)),$(QEMU_DEFAULT_DTB),xiangshan-fpga-noAIA-novec)))
+SPEC2017_DEFAULT_DTB ?= $(if $(DEFAULT_DTB),$(DEFAULT_DTB),$(if $(filter 1,$(SPEC2017_MULTIHART)),,$(if $(filter qemu,$(PLATFORM)),$(SPEC2017_QEMU_DEFAULT_DTB),xiangshan-fpga-noAIA-novec)))
+SPEC2017_GCPT_DEFAULT_DTB := $(if $(and $(filter qemu,$(PLATFORM)),$(filter-out 1,$(SPEC2017_MULTIHART))),$(QEMU_DEFAULT_DTB),$(SPEC2017_DEFAULT_DTB))
 SPEC2017_FIRMWARE_FILENAME := $(if $(filter qemu,$(PLATFORM)),fw_payload.qemu.bin,fw_payload.bin)
 ifeq ($(filter 1,$(SPEC2017_MULTIHART)),1)
 ifeq ($(strip $(SPEC2017_DEFAULT_DTB)),)
@@ -65,10 +67,10 @@ SPEC2017_SBI_BIN ?= $(if $(SBI_BIN),$(SBI_BIN),$(SPEC2017_SBI_BUILD_DIR)/build/p
 SPEC2017_BUILDROOT_CROSS_COMPILE ?= $(SPEC2017_BUILDROOT_DIR)/output/host/bin/riscv64-linux-
 SPEC2017_DTC ?= $(SPEC2017_BUILDROOT_DIR)/output/host/bin/dtc
 spec2017_case_dtb_memory = $(if $(SPEC2017_DTB_MEMORY),$(SPEC2017_DTB_MEMORY),$(if $(findstring _speed_,$(1)),$(SPEC2017_SPEED_DTB_MEMORY),$(SPEC2017_RATE_DTB_MEMORY)))
-spec2017_case_dtb_profile = $(if $(or $(SPEC2017_EXPLICIT_DEFAULT_DTB),$(filter qemu,$(PLATFORM))),,$(call spec2017_case_dtb_memory,$(1)))
+spec2017_case_dtb_profile = $(if $(SPEC2017_EXPLICIT_DEFAULT_DTB),,$(call spec2017_case_dtb_memory,$(1)))
 spec2017_case_dtb_name = $(if $(call spec2017_case_dtb_profile,$(1)),$(if $(filter %-novec,$(SPEC2017_DEFAULT_DTB)),$(patsubst %-novec,%,$(SPEC2017_DEFAULT_DTB))-mem$(call spec2017_case_dtb_profile,$(1))-novec,$(SPEC2017_DEFAULT_DTB)-mem$(call spec2017_case_dtb_profile,$(1))),$(SPEC2017_DEFAULT_DTB))
 spec2017_case_dtb_tag = $(subst /,_,$(call spec2017_case_dtb_name,$(1)))
-spec2017_case_dtb_min_memory_bytes = $(if $(and $(filter qemu,$(PLATFORM)),$(filter-out 1,$(SPEC2017_MULTIHART))),,$(if $(findstring _speed_,$(1)),$(SPEC2017_SPEED_DTB_MIN_MEMORY_BYTES),$(SPEC2017_RATE_DTB_MIN_MEMORY_BYTES)))
+spec2017_case_dtb_min_memory_bytes = $(if $(findstring _speed_,$(1)),$(SPEC2017_SPEED_DTB_MIN_MEMORY_BYTES),$(SPEC2017_RATE_DTB_MIN_MEMORY_BYTES))
 spec2017_case_dtb_required_min_memory_bytes = $(if $(filter 1,$(SPEC2017_MULTIHART)),$(SPEC2017_MULTIHART_DTB_REQUIRED_MIN_MEMORY_BYTES),)
 spec2017_case_cfg = $(if $(SPEC2017_EXPLICIT_CFG),$(SPEC2017_CFG),$(if $(findstring _speed_,$(1)),$(SPEC2017_SPEED_CFG),$(SPEC2017_RATE_CFG)))
 spec2017_case_cfg_hash = $(shell if [ -f "$(abspath $(call spec2017_case_cfg,$(1)))" ]; then sha256sum "$(abspath $(call spec2017_case_cfg,$(1)))" | cut -d ' ' -f 1; else printf 'missing'; fi)
@@ -284,7 +286,7 @@ linux/spec2017: spec2017-check-spec-config
 		echo "Cannot resolve SPEC2017 case from BENCH=$(BENCH), MODE=$(SPEC2017_MODE), INPUT=$(SPEC2017_INPUT)"; \
 		exit 1; \
 	fi
-	@$(MAKE) --no-print-directory -f "$(SPEC2017_RECURSE_MAKEFILE)" GCPT_DEFAULT_DTB="$(SPEC2017_DEFAULT_DTB)" $(SPEC2017_BUILD_DIR)/$(SPEC2017_CASE)/$(SPEC2017_FIRMWARE_FILENAME)
+	@$(MAKE) --no-print-directory -f "$(SPEC2017_RECURSE_MAKEFILE)" GCPT_DEFAULT_DTB="$(SPEC2017_GCPT_DEFAULT_DTB)" $(SPEC2017_BUILD_DIR)/$(SPEC2017_CASE)/$(SPEC2017_FIRMWARE_FILENAME)
 
 spec2017-elf: spec2017-check-spec-config
 	@if [ -z "$(BENCH)" ]; then \
@@ -323,7 +325,7 @@ spec2017-images: spec2017-check-spec-config
 	i=0; \
 	for case in $(SPEC2017_IMAGE_CASES); do \
 		i=$$((i + 1)); \
-		SPEC2017_PROGRESS_K="$$i" SPEC2017_PROGRESS_N="$$total" $(MAKE) --no-print-directory -f "$(SPEC2017_RECURSE_MAKEFILE)" GCPT_DEFAULT_DTB="$(SPEC2017_DEFAULT_DTB)" "$(SPEC2017_IMAGE_DIR)/stamps/$$case.images.stamp" || exit $$?; \
+		SPEC2017_PROGRESS_K="$$i" SPEC2017_PROGRESS_N="$$total" $(MAKE) --no-print-directory -f "$(SPEC2017_RECURSE_MAKEFILE)" GCPT_DEFAULT_DTB="$(SPEC2017_GCPT_DEFAULT_DTB)" "$(SPEC2017_IMAGE_DIR)/stamps/$$case.images.stamp" || exit $$?; \
 	done
 	@printf '[spec2017 %s/%s] Output written to %s\n' "$(words $(SPEC2017_IMAGE_CASES))" "$(words $(SPEC2017_IMAGE_CASES))" "$(abspath $(SPEC2017_IMAGE_DIR))"
 

@@ -35,7 +35,7 @@ $(GAPBS_BUILD_DIR)/$(1)/rootfs.cpio: $$(GAPBS_HELPER) $$(GAPBS_WORKLOAD_DIR)/bui
 	GAPBS_GRAPH_DIR="$$(GAPBS_GRAPH_DIR)" \
 	bash "$$(GAPBS_SCRIPTS_DIR)/build-workload-linux.sh" "$$(GAPBS_WORKLOAD_DIR)" "$(GAPBS_BUILD_DIR)/$(1)"
 
-$(GAPBS_BUILD_DIR)/$(1)/fw_payload.bin: $$(GAPBS_DTS_SOURCES) $$(GAPBS_GCPT_BIN) $$(GAPBS_SCRIPTS_DIR)/build-firmware-linux.sh $(GAPBS_BUILD_DIR)/$(1)/rootfs.cpio $$(GAPBS_LINUX_IMAGE) $$(GAPBS_SBI_BIN)
+$(GAPBS_BUILD_DIR)/$(1)/fw_payload.bin: $$(GAPBS_DTS_SOURCES) $$(GAPBS_GCPT_BIN) $$(GAPBS_SCRIPTS_DIR)/build-firmware-linux.sh $$(GAPBS_SCRIPTS_DIR)/dts-config.sh $(GAPBS_BUILD_DIR)/$(1)/rootfs.cpio $$(GAPBS_LINUX_IMAGE) $$(GAPBS_SBI_BIN)
 	@printf '[gapbs] Assembling firmware for $(1)\n'
 	@CROSS_COMPILE="$$(GAPBS_BUILDROOT_CROSS_COMPILE)" \
 	DTC="$$(GAPBS_DTC)" \
@@ -43,7 +43,10 @@ $(GAPBS_BUILD_DIR)/$(1)/fw_payload.bin: $$(GAPBS_DTS_SOURCES) $$(GAPBS_GCPT_BIN)
 	DTB_MIN_MEMORY_BYTES="$$(GAPBS_DTB_MIN_MEMORY_BYTES)" \
 	bash "$$(GAPBS_SCRIPTS_DIR)/build-firmware-linux.sh" "$$(GAPBS_GCPT_BIN)" "$$(GAPBS_SBI_BUILD_DIR)" "$$(GAPBS_DTS_DIR)" "$$(GAPBS_LINUX_IMAGE)" "$(GAPBS_BUILD_DIR)/$(1)"
 
-linux/gapbs-$(1): $(GAPBS_BUILD_DIR)/$(1)/fw_payload.bin
+linux/gapbs-$(1):
+	@$$(MAKE) --no-print-directory -f "$$(GAPBS_RECURSE_MAKEFILE)" \
+		GCPT_DEFAULT_DTB="$$(GAPBS_DEFAULT_DTB)" \
+		"$(GAPBS_BUILD_DIR)/$(1)/fw_payload.bin"
 
 WORKLOAD_PHONY_TARGETS += linux/gapbs-$(1)
 
@@ -60,7 +63,7 @@ gapbs-list:
 gapbs-images:
 	@[ -n "$(strip $(GAPBS_ALL_CASES))" ] || { echo '[gapbs] error: no cases -- gapbs-package.py --list-cases produced nothing'; exit 1; }
 	@for case in $(GAPBS_ALL_CASES); do \
-		$(MAKE) --no-print-directory -f "$(GAPBS_RECURSE_MAKEFILE)" "$(GAPBS_IMAGE_DIR)/bin/$$case.fw_payload.bin" || exit $$?; \
+		$(MAKE) --no-print-directory -f "$(GAPBS_RECURSE_MAKEFILE)" GCPT_DEFAULT_DTB="$(GAPBS_DEFAULT_DTB)" "$(GAPBS_IMAGE_DIR)/bin/$$case.fw_payload.bin" || exit $$?; \
 	done
 	@printf '[gapbs] Output written to %s\n' "$(abspath $(GAPBS_IMAGE_DIR))"
 

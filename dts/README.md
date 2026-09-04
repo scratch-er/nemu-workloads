@@ -1,6 +1,8 @@
 # Device Tree Templates
 
-This directory contains device tree templates for each device configuration. For each workload, device tree files are generated from the template on the fly, because some parameters cannot be known in advance.
+This directory contains device tree templates for each device configuration.
+For each workload, the selected device tree is generated from its template on
+the fly because some parameters cannot be known in advance.
 
 ## Parameters
 
@@ -31,7 +33,8 @@ the build fails if it does not.
 
 Single-core images use `MULTIHART=0` and LibCheckpointAlpha. They keep the
 original compact placement below; the multi-hart checkpoint-state reservation
-and the `0x88600000` kernel address do not apply:
+and the `0x88600000` kernel address do not apply. This table shows the default
+`0x80000000` DRAM base:
 
 | Physical address / range | Size or offset | Assignment |
 |-------------------------|----------------|------------|
@@ -43,13 +46,17 @@ and the `0x88600000` kernel address do not apply:
 The single-core firmware packer uses `DTB_OFFSET_KB=1792`,
 `SBI_OFFSET_KB=1024`, and `KERNEL_OFFSET_MB=2`. The initramfs address is
 computed from the actual kernel size and starts at the next MiB boundary. The
-selected single-core DTS supplies the DRAM capacity; no fixed 8 GiB or 64 GiB
-profile is imposed by this layout.
+selected single-core DTS supplies the DRAM base and capacity; no fixed 8 GiB or
+64 GiB profile is imposed by this layout.
+
+The `memory` node's first address cell pair is the image's DRAM base. The build
+uses it for GCPT, OpenSBI, kernel, initramfs, and manifest placement, and uses
+the single `riscv,clint0` node to configure GCPT.
 
 ## Multi-Hart Physical Memory Map
 
-All `MULTIHART=1` images use the same physical placement, regardless of the
-selected DRAM capacity or hart count. The image is loaded at `0x80000000`:
+All `MULTIHART=1` images use the same physical placement, regardless of
+the selected DRAM capacity or hart count. The image is loaded at `0x80000000`:
 
 | Physical range | Size | Assignment |
 |----------------|------|------------|

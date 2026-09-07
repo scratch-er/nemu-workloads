@@ -1,0 +1,5 @@
+::sysinit:/bin/mount -t proc proc /proc
+::sysinit:/bin/mount -o remount,rw /
+::sysinit:/bin/mount -t sysfs sysfs /sys
+::sysinit:sh -c "nemu-trap 257"
+::once:/stress-ng/run.sh

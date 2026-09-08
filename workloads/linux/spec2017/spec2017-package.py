@@ -1086,7 +1086,8 @@ def package_case(args):
     )
     run_commands = shell_from_specinvoke(spec_dir, run_dir, log_dir)
     if args.all_runs:
-        variants = run_variants(args.case, run_commands)
+        benchmark_number = case["bench_dir"].split(".", 1)[0]
+        variants = run_variants(f"{benchmark_number}.{args.case}", run_commands)
         variant_root = out_dir / "runs"
         if variant_root.exists():
             shutil.rmtree(variant_root)

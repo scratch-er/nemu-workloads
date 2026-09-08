@@ -127,10 +127,10 @@ debugging; `dt/` contains the exact DTB and generated DTS used by each variant.
 When SPEC generates multiple run commands for a case, `spec2017-images` exports
 one firmware image, one rootfs, and one `cmd/<variant>.run.sh` per command,
 plus one shared ELF for the base case. Variants are named with the base case,
-command index, and output label, for example:
+the official SPEC benchmark number, command index, and output label, for example:
 
 ```text
-perlbench_rate_refrate_00_checkspam.2500.5.25.11.150.1.1.1.1.fw_payload.bin
+500.perlbench_rate_refrate_00_checkspam.2500.5.25.11.150.1.1.1.1.fw_payload.bin
 ```
 
 Useful selectors:
